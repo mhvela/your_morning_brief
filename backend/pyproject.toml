@@ -15,6 +15,8 @@ dev = [
   "ruff==0.6.8",
   "black==24.8.0",
   "mypy==1.11.2",
+  # httpx is required for TestClient but not in main deps
+  # since it's only used for testing
 ]
 
 [build-system]

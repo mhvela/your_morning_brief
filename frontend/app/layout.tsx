@@ -1,3 +1,5 @@
+import React from "react";
+
 export const metadata = {
   title: "Your Morning Brief",
   description: "Stay updated with your curated topics",

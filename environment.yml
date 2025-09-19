@@ -1,0 +1,6 @@
+name: ymb-py311
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+prefix: /Users/Mike/miniforge3/envs/ymb-py311

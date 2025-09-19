@@ -1,0 +1,24 @@
+---
+globs: *.py
+description: Backend coding standards for FastAPI service (Python 3.11)
+---
+# Backend Standards (FastAPI)
+
+- Language/runtime: Python 3.11; adhere to ruff, black, mypy; tests with pytest
+- Project structure (initial): `app/main.py`, `app/api/health.py`, domain modules under `app/`
+- Endpoints:
+  - Provide `/healthz`, `/readyz`, `/version`
+  - Use clear, RESTful routes; return typed Pydantic models
+- Types & style:
+  - Type-annotate public functions and endpoint handlers
+  - Avoid `Any`; prefer precise types; use `typing` and Pydantic models
+- Errors & logging:
+  - Use exception handlers; avoid bare `except`
+  - Structured logging; include request id where available
+- Testing:
+  - Pytest for unit/integration; deterministic tests (no external network)
+  - Use factories/fixtures; cover success and failure paths
+- Quality gates:
+  - CI must pass: ruff/black (format), mypy (types), pytest (tests)
+- Config:
+  - Load from environment; commit `.env.example` only; never secrets

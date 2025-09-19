@@ -1,0 +1,11 @@
+---
+alwaysApply: true
+description: Formatting and indentation guidance
+---
+# Formatting and Indentation
+
+- Preserve each file’s existing indentation characters (tabs vs spaces) and width
+- Do not reformat unrelated code when making focused edits
+- Match the surrounding code style and naming conventions
+- Prefer multi-line clarity over dense one-liners; wrap long lines thoughtfully
+- Avoid adding commentary-only lines inside code; keep comments concise and meaningful

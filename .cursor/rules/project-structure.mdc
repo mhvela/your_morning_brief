@@ -1,0 +1,19 @@
+---
+alwaysApply: true
+---
+# Project Structure and Key Documents
+
+Use these documents to understand goals and implementation:
+- Product Requirements: [your_morning_brief_PRD.md](mdc:your_morning_brief_PRD.md)
+- MVP Implementation Plan: [MVP_imp_plan.md](mdc:MVP_imp_plan.md)
+- Milestone 1.1 Detailed Spec: [M1.1_spec.md](mdc:M1.1_spec.md)
+
+High-level layout (planned):
+- `backend/`: FastAPI service; health endpoints (`/healthz`, `/readyz`, `/version`), RSS ingestion, ranking, summarization APIs
+- `frontend/`: Next.js app with Tailwind; topic management and Daily Brief UI
+- `infra/` (optional): Dockerfiles, compose, environment samples
+- `.github/workflows/`: CI pipeline for lint, type-check, and tests
+
+When adding or modifying features:
+- Keep milestones small and demoable per [MVP_imp_plan.md](mdc:MVP_imp_plan.md)
+- For Milestone 1.1 scaffolding specifics, see [M1.1_spec.md](mdc:M1.1_spec.md)

@@ -1,0 +1,15 @@
+---
+alwaysApply: true
+description: Commit conventions, PR requirements, and CI gates
+---
+# Commits, PRs, and CI
+
+- Use Conventional Commits (feat, fix, chore, docs, refactor, test, ci)
+- Open PRs to `main`; ensure description references relevant milestones
+- Required green checks before merge:
+  - Backend: ruff/black, mypy, pytest
+  - Frontend: eslint, tsc --noEmit, unit tests
+- Update docs when behavior or interfaces change:
+  - [MVP_imp_plan.md](mdc:MVP_imp_plan.md) for milestones/status
+  - [M1.1_spec.md](mdc:M1.1_spec.md) for scaffolding specifics
+- No secrets in repo; use GitHub Secrets for CI

@@ -30,8 +30,13 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     environment:
-      APP_VERSION: ${APP_VERSION:-0.1.0}
-      ENV: development
+      # Application settings
+      VERSION: ${APP_VERSION:-0.1.0}
+      LOG_LEVEL: DEBUG
+      API_HOST: 0.0.0.0
+      API_PORT: 8000
+
+      # Future database settings (not used in M1.2)
       POSTGRES_HOST: postgres
       POSTGRES_PORT: 5432
       POSTGRES_USER: ymb
@@ -40,9 +45,15 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: 6379
     volumes:
-      - ./backend:/app
+      - ./backend/app:/app/app
     ports:
       - "8000:8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
     depends_on:
       postgres:
         condition: service_healthy

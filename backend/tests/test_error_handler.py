@@ -42,7 +42,8 @@ async def test_global_exception_handler() -> None:
     assert response.status_code == 500
 
     # Check response content
-    content = response.body.decode()
+    body = response.body
+    content = body.decode() if isinstance(body, bytes) else bytes(body).decode()
     assert "INTERNAL_ERROR" in content
     assert "req_123" in content
     assert "An unexpected error occurred" in content

@@ -39,8 +39,8 @@ class Settings(BaseSettings):
     database_pool_timeout: int = 30
     database_echo: bool = False
 
-    # Test database
-    test_database_url: str | None = None
+    # Test database (use SQLite file by default for CI/local tests)
+    test_database_url: str | None = "sqlite:///./test.db"
 
     # Build info (populated at runtime)
     build_date: str = ""

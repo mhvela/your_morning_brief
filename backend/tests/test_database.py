@@ -22,7 +22,7 @@ def db_engine() -> Generator[Engine, None, None]:
     # Use test database URL if available, otherwise use main database URL
     database_url = settings.test_database_url or settings.database_url
     assert database_url is not None
-    engine = create_engine(database_url, echo=False)
+    engine = create_engine(database_url, echo=False, future=True)
 
     # Create all tables
     Base.metadata.create_all(bind=engine)

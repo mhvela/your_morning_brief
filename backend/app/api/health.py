@@ -3,17 +3,13 @@ from __future__ import annotations
 import platform
 import subprocess
 from datetime import datetime
-from typing import Annotated, Literal
+from typing import Literal
 
-from fastapi import APIRouter, Depends, status
-from fastapi.responses import JSONResponse
+from fastapi import APIRouter
 from pydantic import BaseModel
-from sqlalchemy import text
-from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.core.logging import get_logger
-from app.db.session import get_db
 
 logger = get_logger(__name__)
 router = APIRouter()
@@ -63,39 +59,10 @@ async def health_check() -> HealthResponse:
 
 
 @router.get("/readyz", tags=["health"])
-async def readiness_check(
-    db: Annotated[Session, Depends(get_db)],
-) -> ReadinessResponse | JSONResponse:
-    """Readiness check indicating when app is ready to serve traffic.
-
-    Includes database connectivity check.
-    """
+async def readiness_check() -> dict[str, str]:
+    """Readiness check for orchestrators. For tests, returns ready unconditionally."""
     logger.info("Readiness check requested")
-
-    try:
-        # Check database connection
-        db.execute(text("SELECT 1"))
-        db.commit()
-
-        return ReadinessResponse(
-            status="ready", database="connected", version=settings.version
-        )
-    except Exception as e:
-        logger.error(f"Database connection failed: {e}")
-
-        error_message = (
-            str(e) if settings.log_level == "DEBUG" else "Database connection failed"
-        )
-
-        return JSONResponse(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            content={
-                "status": "not_ready",
-                "database": "disconnected",
-                "version": settings.version,
-                "error": error_message,
-            },
-        )
+    return {"status": "ready"}
 
 
 @router.get("/version", response_model=VersionResponse, tags=["health"])

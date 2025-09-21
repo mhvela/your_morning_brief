@@ -1,6 +1,7 @@
 import os
 import sqlite3
 import sys
+from typing import Any
 
 from sqlalchemy import event
 from sqlalchemy.engine import Engine
@@ -14,7 +15,9 @@ if BACKEND_ROOT not in sys.path:
 
 # Ensure SQLite enforces foreign key constraints for tests
 @event.listens_for(Engine, "connect")
-def _set_sqlite_pragma(dbapi_connection, connection_record):  # noqa: D401
+def _set_sqlite_pragma(
+    dbapi_connection: Any, connection_record: Any
+) -> None:  # noqa: D401
     """Enable foreign key checks in SQLite connections used by tests."""
     if isinstance(dbapi_connection, sqlite3.Connection):
         cursor = dbapi_connection.cursor()

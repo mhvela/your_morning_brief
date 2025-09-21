@@ -6,9 +6,13 @@ from sqlalchemy.orm import Session, sessionmaker
 from app.core.config import settings
 
 # Resolve database URL with a fallback to a valid DSN string
-database_url: str | URL = settings.database_url or (
-    f"postgresql://{settings.postgres_user}:{settings.postgres_password}"
-    f"@{settings.postgres_host}:{settings.postgres_port}/{settings.postgres_db}"
+database_url: str | URL = settings.database_url or URL.create(
+    "postgresql",
+    username=settings.postgres_user,
+    password=settings.postgres_password,
+    host=settings.postgres_host,
+    port=int(settings.postgres_port) if settings.postgres_port else None,
+    database=settings.postgres_db,
 )
 
 # Create engine with connection pooling

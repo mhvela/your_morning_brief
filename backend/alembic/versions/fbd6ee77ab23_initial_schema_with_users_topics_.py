@@ -51,6 +51,9 @@ def upgrade() -> None:
     )
     op.create_index(op.f("ix_sources_feed_url"), "sources", ["feed_url"], unique=True)
     op.create_index(op.f("ix_sources_id"), "sources", ["id"], unique=False)
+    op.create_index(
+        op.f("ix_sources_last_fetched_at"), "sources", ["last_fetched_at"], unique=False
+    )
     op.create_index(op.f("ix_sources_url"), "sources", ["url"], unique=True)
 
     # Create topics table
@@ -162,7 +165,9 @@ def upgrade() -> None:
         sa.Column("created_at", sa.DateTime(), nullable=False),
         sa.Column("updated_at", sa.DateTime(), nullable=False),
         sa.Column("delivery_id", sa.Integer(), nullable=False),
-        sa.Column("rating", sa.String(length=10), nullable=False),
+        sa.Column(
+            "rating", sa.Enum("UP", "DOWN", name="feedbackrating"), nullable=False
+        ),
         sa.Column("comment", sa.Text(), nullable=True),
         sa.ForeignKeyConstraint(
             ["delivery_id"],

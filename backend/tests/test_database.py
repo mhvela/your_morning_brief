@@ -1,10 +1,12 @@
 import hashlib
+from collections.abc import Generator
 from datetime import datetime
 
 import pytest
 from sqlalchemy import create_engine, text
+from sqlalchemy.engine import Engine
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import Session, sessionmaker
 
 from app.core.config import settings
 from app.db.base import Base
@@ -15,10 +17,11 @@ from app.models.user import User
 
 
 @pytest.fixture(scope="session")
-def db_engine():
+def db_engine() -> Generator[Engine, None, None]:
     """Create test database engine"""
     # Use test database URL if available, otherwise use main database URL
     database_url = settings.test_database_url or settings.database_url
+    assert database_url is not None
     engine = create_engine(database_url, echo=False)
 
     # Create all tables
@@ -30,7 +33,7 @@ def db_engine():
 
 
 @pytest.fixture(scope="function")
-def db_session(db_engine):
+def db_session(db_engine: Engine) -> Generator[Session, None, None]:
     """Create a fresh database session for each test"""
     connection = db_engine.connect()
     transaction = connection.begin()
@@ -44,13 +47,13 @@ def db_session(db_engine):
     connection.close()
 
 
-def test_database_connection(db_session):
+def test_database_connection(db_session: Session) -> None:
     """Test basic database connectivity"""
     result = db_session.execute(text("SELECT 1"))
     assert result.scalar() == 1
 
 
-def test_user_creation(db_session):
+def test_user_creation(db_session: Session) -> None:
     """Test creating a user"""
     user = User(email="test@example.com", is_active=True)
     db_session.add(user)
@@ -63,7 +66,7 @@ def test_user_creation(db_session):
     assert user.is_active is True
 
 
-def test_topic_with_keywords(db_session):
+def test_topic_with_keywords(db_session: Session) -> None:
     """Test creating a topic with keywords"""
     user = User(email="test@example.com")
     db_session.add(user)
@@ -83,7 +86,7 @@ def test_topic_with_keywords(db_session):
     assert topic.is_active is True
 
 
-def test_source_creation(db_session):
+def test_source_creation(db_session: Session) -> None:
     """Test creating a news source"""
     source = Source(
         name="TechCrunch",
@@ -99,7 +102,7 @@ def test_source_creation(db_session):
     assert source.error_count == 0
 
 
-def test_article_creation(db_session):
+def test_article_creation(db_session: Session) -> None:
     """Test creating an article"""
     source = Source(
         name="TechCrunch",
@@ -126,7 +129,7 @@ def test_article_creation(db_session):
     assert "tech" in article.tags
 
 
-def test_article_deduplication(db_session):
+def test_article_deduplication(db_session: Session) -> None:
     """Test article content hash uniqueness"""
     source = Source(
         name="TechCrunch",
@@ -163,7 +166,7 @@ def test_article_deduplication(db_session):
         db_session.commit()
 
 
-def test_unique_email_constraint(db_session):
+def test_unique_email_constraint(db_session: Session) -> None:
     """Test that user emails must be unique"""
     user1 = User(email="test@example.com", is_active=True)
     db_session.add(user1)
@@ -176,7 +179,7 @@ def test_unique_email_constraint(db_session):
         db_session.commit()
 
 
-def test_foreign_key_constraint(db_session):
+def test_foreign_key_constraint(db_session: Session) -> None:
     """Test foreign key constraint enforcement"""
     # Try to create a topic without a valid user
     topic = Topic(

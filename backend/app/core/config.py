@@ -1,6 +1,9 @@
 from __future__ import annotations
 
-from pydantic import field_validator
+from collections.abc import Mapping
+from typing import Any
+
+from pydantic import ValidationInfo, field_validator
 from pydantic_settings import BaseSettings
 
 
@@ -46,11 +49,11 @@ class Settings(BaseSettings):
 
     @field_validator("database_url", mode="before")
     @classmethod
-    def assemble_db_connection(cls, v: str | None, info) -> str:
+    def assemble_db_connection(cls, v: Any, info: ValidationInfo) -> str:
         if isinstance(v, str):
             return v
         # Build from components if not provided
-        values = info.data if hasattr(info, "data") else {}
+        values: Mapping[str, Any] = info.data if hasattr(info, "data") else {}
         user = values.get("postgres_user", "mb_user")
         password = values.get("postgres_password", "mb_dev_password")
         host = values.get("postgres_host", "localhost")

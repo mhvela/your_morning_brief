@@ -3,7 +3,7 @@ from __future__ import annotations
 import platform
 import subprocess
 from datetime import datetime
-from typing import Literal
+from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, status
 from fastapi.responses import JSONResponse
@@ -63,7 +63,9 @@ async def health_check() -> HealthResponse:
 
 
 @router.get("/readyz", tags=["health"])
-async def readiness_check(db: Session = Depends(get_db)):  # noqa: B008
+async def readiness_check(
+    db: Annotated[Session, Depends(get_db)],
+) -> ReadinessResponse | JSONResponse:
     """Readiness check indicating when app is ready to serve traffic.
 
     Includes database connectivity check.

@@ -5,11 +5,15 @@ import subprocess
 from datetime import datetime
 from typing import Literal
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends, status
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
+from sqlalchemy import text
+from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.core.logging import get_logger
+from app.db.session import get_db
 
 logger = get_logger(__name__)
 router = APIRouter()
@@ -20,7 +24,9 @@ class HealthResponse(BaseModel):
 
 
 class ReadinessResponse(BaseModel):
-    status: Literal["ready"]
+    status: Literal["ready", "not_ready"]
+    database: Literal["connected", "disconnected"] = "connected"
+    version: str
 
 
 class VersionResponse(BaseModel):
@@ -56,16 +62,38 @@ async def health_check() -> HealthResponse:
     return HealthResponse(status="ok")
 
 
-@router.get("/readyz", response_model=ReadinessResponse, tags=["health"])
-async def readiness_check() -> ReadinessResponse:
+@router.get("/readyz", tags=["health"])
+async def readiness_check(db: Session = Depends(get_db)):  # noqa: B008
     """Readiness check indicating when app is ready to serve traffic.
 
-    Currently returns ready immediately. In future milestones, this will
-    check database and Redis connectivity.
+    Includes database connectivity check.
     """
     logger.info("Readiness check requested")
-    # TODO: Add database and Redis health checks in future milestones
-    return ReadinessResponse(status="ready")
+
+    try:
+        # Check database connection
+        db.execute(text("SELECT 1"))
+        db.commit()
+
+        return ReadinessResponse(
+            status="ready", database="connected", version=settings.version
+        )
+    except Exception as e:
+        logger.error(f"Database connection failed: {e}")
+
+        error_message = (
+            str(e) if settings.log_level == "DEBUG" else "Database connection failed"
+        )
+
+        return JSONResponse(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            content={
+                "status": "not_ready",
+                "database": "disconnected",
+                "version": settings.version,
+                "error": error_message,
+            },
+        )
 
 
 @router.get("/version", response_model=VersionResponse, tags=["health"])

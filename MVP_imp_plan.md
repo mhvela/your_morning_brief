@@ -18,7 +18,7 @@
 
 ## Phase 1 (Weeks 1-2): RSS Aggregation + Basic AI Processing
 
-### Milestone 1.1 – Repo, CI, and Dev Scaffolding
+### Milestone 1.1 – Repo, CI, and Dev Scaffolding ✅
 
 - Goal: Establish project structure and quality gates.
 - Deliverables:
@@ -27,10 +27,11 @@
   - Dev containers / Dockerfiles and `make` targets (run, test, fmt)
 - Acceptance:
   - CI runs automatically on PRs and `main`, all checks pass on a hello-world test.
+- Status: **COMPLETED**
 
 Note: Detailed spec can be found in [M1.1_spec.md](M1.1_spec.md).
 
-### Milestone 1.2 – FastAPI Skeleton + Health/Version Endpoints
+### Milestone 1.2 – FastAPI Skeleton + Health/Version Endpoints ✅
 
 - Goal: Running API baseline.
 - Deliverables:
@@ -38,8 +39,11 @@ Note: Detailed spec can be found in [M1.1_spec.md](M1.1_spec.md).
   - Structured logging and basic error middleware
 - Acceptance:
   - `GET /healthz` returns 200 locally and in Docker.
+- Status: **COMPLETED**
 
-### Milestone 1.3 – Database Bootstrap (PostgreSQL) + Migrations
+Note: Detailed spec can be found in [M1.2_spec.md](M1.2_spec.md).
+
+### Milestone 1.3 – Database Bootstrap (PostgreSQL) + Migrations ✅
 
 - Goal: Persistent storage foundation.
 - Deliverables:
@@ -47,6 +51,9 @@ Note: Detailed spec can be found in [M1.1_spec.md](M1.1_spec.md).
   - Initial schema: `users`, `topics`, `sources`, `articles`
 - Acceptance:
   - `alembic upgrade head` succeeds; tables visible; rollback works.
+- Status: **COMPLETED**
+
+Note: Detailed spec can be found in [M1.3_spec.md](M1.3_spec.md).
 
 ### Milestone 1.4 – RSS Source Seeding and Single-Feed Ingestion
 
@@ -249,9 +256,9 @@ Note: Detailed spec can be found in [M1.1_spec.md](M1.1_spec.md).
 
 ## Milestone Checklist (for tracking)
 
-- [ ] 1.1 Repo, CI
-- [ ] 1.2 FastAPI skeleton
-- [ ] 1.3 DB bootstrap
+- [x] 1.1 Repo, CI (See [M1.1_spec.md](M1.1_spec.md))
+- [x] 1.2 FastAPI skeleton (See [M1.2_spec.md](M1.2_spec.md))
+- [x] 1.3 DB bootstrap (See [M1.3_spec.md](M1.3_spec.md))
 - [ ] 1.4 Single-feed ingestion
 - [ ] 1.5 Normalization & dedup
 - [ ] 1.6 10+ feeds & robustness

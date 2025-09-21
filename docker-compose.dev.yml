@@ -2,18 +2,31 @@ version: "3.9"
 
 services:
   postgres:
-    image: postgres:15
+    image: postgres:15-alpine
     environment:
-      POSTGRES_USER: ymb
-      POSTGRES_PASSWORD: ymb
-      POSTGRES_DB: ymb
+      POSTGRES_DB: morning_brief
+      POSTGRES_USER: mb_user
+      POSTGRES_PASSWORD: mb_dev_password
     ports:
       - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ymb"]
-      interval: 5s
+      test: ["CMD-SHELL", "pg_isready -U mb_user -d morning_brief"]
+      interval: 10s
       timeout: 5s
-      retries: 10
+      retries: 5
+
+  postgres-test:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: morning_brief_test
+      POSTGRES_USER: mb_user
+      POSTGRES_PASSWORD: mb_test_password
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_test_data:/var/lib/postgresql/data
 
   redis:
     image: redis:7-alpine
@@ -36,12 +49,13 @@ services:
       API_HOST: 0.0.0.0
       API_PORT: 8000
 
-      # Future database settings (not used in M1.2)
+      # Database settings
+      DATABASE_URL: postgresql://mb_user:mb_dev_password@postgres:5432/morning_brief
       POSTGRES_HOST: postgres
       POSTGRES_PORT: 5432
-      POSTGRES_USER: ymb
-      POSTGRES_PASSWORD: ymb
-      POSTGRES_DB: ymb
+      POSTGRES_USER: mb_user
+      POSTGRES_PASSWORD: mb_dev_password
+      POSTGRES_DB: morning_brief
       REDIS_HOST: redis
       REDIS_PORT: 6379
     volumes:
@@ -72,6 +86,10 @@ services:
       - "3000:3000"
     depends_on:
       - backend
+
+volumes:
+  postgres_data:
+  postgres_test_data:
 
 networks:
   default:

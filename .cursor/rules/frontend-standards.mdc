@@ -5,16 +5,25 @@ description: Frontend standards for Next.js + TypeScript + Tailwind
 # Frontend Standards (Next.js)
 
 - Language/runtime: Node 20; TypeScript strict mode
-- Linting/formatting: ESLint (no warnings), Prettier; tests via Vitest or Jest
+- Linting/formatting: ESLint (no warnings), Prettier; tests via Vitest
 - App structure:
   - Next.js app router preferred; Tailwind for styles
   - Organize by feature; reusable components under `components/`
 - Data fetching:
   - Typed API clients; handle loading/empty/error states
   - Do not block rendering on non-critical data
+  - **Security**: Validate and sanitize all data from backend APIs
+  - **Security**: Implement proper error boundaries to prevent information leakage
 - Accessibility:
   - Follow WCAG basics; semantic HTML; keyboard navigability
+- **Security (Frontend-Specific)**:
+  - **XSS Prevention**: Never use `dangerouslySetInnerHTML` with unsanitized content
+  - **Content Validation**: Validate article content and summaries before rendering
+  - **Error Handling**: No sensitive information in error messages or console logs
+  - **Input Sanitization**: Sanitize user inputs in forms and search fields
+  - **Content Security Policy**: Support CSP headers from backend
 - UI scope (MVP):
   - Topic management screens and Daily Brief with 3 articles per topic
 - Quality gates:
-  - CI must pass: eslint, tsc --noEmit, unit tests
+  - CI must pass: eslint, tsc --noEmit, unit tests, security tests
+  - **Security Testing**: Test XSS prevention, input validation, error boundaries

@@ -1,0 +1,163 @@
+---
+globs: *.py, *.ts, *.tsx
+description: Security standards for RSS ingestion and AI processing pipeline
+---
+# Security Standards (Defense in Depth)
+
+## Critical Security Requirements
+
+### Layer 1: Network Security
+- **SSRF Protection**: Block private IP ranges (10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, 127.0.0.0/8)
+- **SSL/TLS**: Always verify certificates, reject self-signed
+- **Rate Limiting**: Implement per-source and per-endpoint limits
+- **Request Validation**: Enforce size limits, timeouts, redirect limits
+
+### Layer 2: Input Validation
+- **Pydantic Models**: Validate ALL external inputs (RSS feeds, API requests)
+- **HTML Sanitization**: Use `bleach` with empty allowlist - strip ALL HTML/JavaScript
+- **Encoding Security**: Whitelist allowed encodings, validate confidence thresholds
+- **URL Validation**: Only HTTP/HTTPS schemes, validate against blocklists
+
+### Layer 3: Data Processing
+- **SQL Injection Prevention**: MANDATORY SQLAlchemy ORM with parameterized queries
+- **Content Security**: Sanitize inputs before hashing or storage
+- **Unicode Normalization**: Apply NFKC for consistent processing
+- **Pattern Monitoring**: Log suspicious content patterns
+
+### Layer 4: Application Security
+- **API Key Management**: Encrypt at rest using `cryptography.fernet`
+- **Cost Controls**: Multi-layered budgets with circuit breakers
+- **Secure Logging**: Mask sensitive data, never log API keys/passwords
+- **Error Handling**: No sensitive data in error responses
+
+## Required Security Libraries
+```python
+bleach==6.1.0              # HTML sanitization
+cryptography==41.0.7       # API key encryption
+slowapi==0.1.9             # Rate limiting
+chardet==5.2.0             # Safe encoding detection
+pydantic>=2.0.0            # Input validation
+```
+
+## Security Patterns
+
+### Secure RSS Feed Handling
+```python
+import bleach
+from pydantic import BaseModel, HttpUrl
+
+# Always sanitize HTML content
+def sanitize_content(raw_html: str) -> str:
+    return bleach.clean(raw_html, tags=[], strip=True)
+
+# Validate feed URLs
+class FeedUrl(BaseModel):
+    url: HttpUrl
+
+    @validator('url')
+    def validate_url(cls, v):
+        if v.host in ['localhost', '127.0.0.1']:
+            raise ValueError('Private URLs not allowed')
+        return v
+```
+
+### Secure Database Operations
+```python
+# GOOD - Use SQLAlchemy ORM
+def create_article(session: Session, article_data: dict) -> Article:
+    article = Article(**article_data)
+    session.add(article)
+    session.commit()
+    return article
+
+# BAD - Never use string concatenation
+# query = f"INSERT INTO articles VALUES ('{title}')"  # NEVER!
+```
+
+### Secure API Key Management
+```python
+from cryptography.fernet import Fernet
+
+class SecureConfig:
+    def __init__(self):
+        self.fernet = Fernet(self._load_key())
+
+    def decrypt_api_key(self, encrypted_key: str) -> str:
+        return self.fernet.decrypt(encrypted_key.encode()).decode()
+```
+
+## Security Testing Requirements
+
+### Required Security Tests
+- XSS payload injection resistance
+- SQL injection prevention validation
+- SSRF attack simulation
+- Input validation bypass attempts
+- API key encryption/decryption
+- Rate limiting effectiveness
+
+### Test Examples
+```python
+def test_xss_sanitization():
+    malicious_html = "<script>alert('xss')</script>Hello"
+    result = sanitize_content(malicious_html)
+    assert "<script>" not in result
+    assert "Hello" in result
+
+def test_ssrf_protection():
+    with pytest.raises(ValueError):
+        FeedUrl(url="http://localhost:8080/admin")
+```
+
+## Security Configuration
+
+### Environment Variables (All Required)
+```bash
+# API Security
+OPENAI_API_KEY_ENCRYPTED=<encrypted_key>
+API_KEY_ENCRYPTION_KEY_PATH=/app/secrets/encryption.key
+
+# Rate Limiting
+DAILY_REQUEST_LIMIT=1000
+DAILY_TOKEN_BUDGET=50000
+DAILY_COST_LIMIT_USD=10.0
+
+# Network Security
+SSL_VERIFY=true
+MAX_RESPONSE_SIZE_MB=10
+INGESTION_TIMEOUT_SEC=10
+```
+
+### Secure Logging
+```python
+# GOOD - Masked logging
+logger.info("API call completed", extra={
+    "api_key": "[REDACTED]",
+    "response_size": len(response),
+    "status": "success"
+})
+
+# BAD - Sensitive data exposure
+# logger.info(f"Used API key: {api_key}")  # NEVER!
+```
+
+## Quality Gates
+
+### CI Security Checks (Required)
+- SAST scanning for vulnerabilities
+- Dependency vulnerability scanning
+- Security test execution
+- Performance impact validation (<50ms overhead)
+
+### Manual Security Review (Required)
+- Security audit for all milestone implementations
+- Penetration testing before production
+- Code review focusing on security patterns
+- Threat modeling for new features
+
+## Compliance Standards
+
+- OWASP Top 10 web application security
+- OWASP API Security Top 10
+- Secure coding per SANS/CWE guidelines
+- Data protection considerations for content processing

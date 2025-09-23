@@ -41,3 +41,27 @@ backend:
 
 frontend:
 	@cd frontend && (next dev -p 3000 || npm run dev || $(PKG_MANAGER) dev)
+
+# Database operations
+.PHONY: db-upgrade db-downgrade db-reset db-create-migration db-history
+
+db-upgrade:
+	@echo "Upgrading database to latest migration..."
+	@cd backend && alembic upgrade head
+
+db-downgrade:
+	@echo "Downgrading database by one migration..."
+	@cd backend && alembic downgrade -1
+
+db-reset:
+	@echo "Resetting database..."
+	@cd backend && alembic downgrade base && alembic upgrade head
+
+db-create-migration:
+	@echo "Creating new migration..."
+	@read -p "Enter migration message: " msg; \
+	cd backend && alembic revision --autogenerate -m "$$msg"
+
+db-history:
+	@echo "Migration history:"
+	@cd backend && alembic history --verbose

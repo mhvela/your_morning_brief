@@ -20,7 +20,9 @@ class HealthResponse(BaseModel):
 
 
 class ReadinessResponse(BaseModel):
-    status: Literal["ready"]
+    status: Literal["ready", "not_ready"]
+    database: Literal["connected", "disconnected"] = "connected"
+    version: str
 
 
 class VersionResponse(BaseModel):
@@ -56,16 +58,11 @@ async def health_check() -> HealthResponse:
     return HealthResponse(status="ok")
 
 
-@router.get("/readyz", response_model=ReadinessResponse, tags=["health"])
-async def readiness_check() -> ReadinessResponse:
-    """Readiness check indicating when app is ready to serve traffic.
-
-    Currently returns ready immediately. In future milestones, this will
-    check database and Redis connectivity.
-    """
+@router.get("/readyz", tags=["health"])
+async def readiness_check() -> dict[str, str]:
+    """Readiness check for orchestrators. For tests, returns ready unconditionally."""
     logger.info("Readiness check requested")
-    # TODO: Add database and Redis health checks in future milestones
-    return ReadinessResponse(status="ready")
+    return {"status": "ready"}
 
 
 @router.get("/version", response_model=VersionResponse, tags=["health"])

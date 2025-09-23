@@ -82,13 +82,13 @@ This is **Your Morning Brief** - an AI-powered news curation service that will:
 - Use RSS feeds + AI for content filtering and summarization
 - Learn from user feedback to improve relevance
 
-**Current Status:** Milestone 1.1 (Repo/CI/Dev Scaffolding) - basic infrastructure is complete. Next milestones will add RSS ingestion, AI processing, and topic management features.
+**Current Status:** Milestone 1.3 (Database Bootstrap) - PostgreSQL database layer with SQLAlchemy models and Alembic migrations is complete. Next milestones will add RSS ingestion, AI processing, and topic management features.
 
 **Key Documents:**
 
 - `your_morning_brief_PRD.md`: Complete product requirements
 - `MVP_imp_plan.md`: Detailed implementation roadmap with 18 milestones
-- `M1.1_spec.md`: Current milestone specification
+- `M1.1_spec.md`, `M1.2_spec.md`, `M1.3_spec.md`: Milestone specifications
 
 ## Quality Standards
 
@@ -111,3 +111,84 @@ This is **Your Morning Brief** - an AI-powered news curation service that will:
 
 - Backend: ruff, black, mypy, pytest
 - Frontend: eslint, tsc --noEmit, unit tests
+
+## Code Review Preferences
+
+**Automated PR Reviews:**
+
+Claude will automatically review all non-draft pull requests focusing on:
+
+1. **Code Quality & Best Practices**
+   - Adherence to project conventions and patterns
+   - DRY principle and code reusability
+   - Clear naming and code organization
+   - Proper error handling and edge cases
+
+2. **Type Safety & Testing**
+   - Type hints/annotations coverage
+   - Test coverage for new functionality
+   - Validation of input/output contracts
+   - Error boundary implementation
+
+3. **Security & Performance**
+   - No hardcoded secrets or sensitive data
+   - SQL injection and XSS prevention
+   - Efficient algorithms and database queries
+   - Proper resource cleanup
+
+4. **Architecture Compliance**
+   - Follow established project structure
+   - Use existing utilities and patterns
+   - Maintain separation of concerns
+   - API contract consistency
+
+5. **Documentation & Maintainability**
+   - Clear function/class documentation for public APIs
+   - Complex logic explained with inline comments
+   - Updated tests for changed behavior
+   - Meaningful commit messages
+
+**Review Style:**
+
+- Provide specific, actionable feedback with code examples
+- Highlight both issues and good practices
+- Suggest improvements rather than just pointing out problems
+- Focus on education and knowledge sharing
+- Be constructive and respectful
+
+**How to interact with Claude in PRs:**
+
+- Mention `@claude` in any PR comment to ask questions
+- Use `/claude review` to trigger a full review
+- Ask specific questions like `@claude is this SQL query optimized?`
+- Request explanations: `@claude explain this architecture decision`
+
+## Milestone Progress Tracking
+
+**IMPORTANT:** Always maintain accurate milestone status in `MVP_imp_plan.md`:
+
+**When completing milestones:**
+
+1. Update the milestone title with ✅ checkmark
+2. Add "Status: **COMPLETED**" to the milestone description
+3. Update the checklist at the bottom from `[ ]` to `[x]`
+4. Reference the detailed spec file (e.g., `M1.3_spec.md`)
+5. Update the "Current Status" section in this CLAUDE.md file
+
+**When working on milestones:**
+
+- Document any partial progress or blockers
+- Update status descriptions to reflect current state
+- Note any deviations from original specifications
+
+**Example format:**
+
+```markdown
+### Milestone 1.3 – Database Bootstrap (PostgreSQL) + Migrations ✅
+
+- Goal: Persistent storage foundation
+- Status: **COMPLETED**
+  Note: Detailed spec can be found in [M1.3_spec.md](M1.3_spec.md).
+```
+
+This ensures the team always has an accurate view of project progress and implementation status.

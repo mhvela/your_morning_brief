@@ -85,6 +85,11 @@ pnpm-debug.log*
 # --- Docker / Compose (optional local overrides) ---
 docker-compose.override.yml
 
+# --- Database files ---
+*.db
+*.sqlite
+*.sqlite3
+
 # --- Misc ---
 *.log
 *.tmp

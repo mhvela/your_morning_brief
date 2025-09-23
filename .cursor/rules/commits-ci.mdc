@@ -7,8 +7,10 @@ description: Commit conventions, PR requirements, and CI gates
 - Use Conventional Commits (feat, fix, chore, docs, refactor, test, ci)
 - Open PRs to `main`; ensure description references relevant milestones
 - Required green checks before merge:
-  - Backend: ruff/black, mypy, pytest
+  - Backend: ruff/black, mypy, pytest, security tests
   - Frontend: eslint, tsc --noEmit, unit tests
+  - Security: SAST scanning, dependency vulnerability checks
+  - Performance: Security overhead validation (<50ms per request)
 - Update docs when behavior or interfaces change:
   - [MVP_imp_plan.md](mdc:MVP_imp_plan.md) for milestones/status
   - [M1.1_spec.md](mdc:M1.1_spec.md) for scaffolding specifics

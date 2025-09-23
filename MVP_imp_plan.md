@@ -55,7 +55,7 @@ Note: Detailed spec can be found in [M1.2_spec.md](M1.2_spec.md).
 
 Note: Detailed spec can be found in [M1.3_spec.md](M1.3_spec.md).
 
-### Milestone 1.4 – RSS Source Seeding and Single-Feed Ingestion
+### Milestone 1.4 – RSS Source Seeding and Single-Feed Ingestion ✅
 
 - Goal: Fetch and parse first feed.
 - Deliverables:
@@ -63,6 +63,9 @@ Note: Detailed spec can be found in [M1.3_spec.md](M1.3_spec.md).
   - Ingestion module using `feedparser` for one feed
 - Acceptance:
   - CLI command ingests ≥10 items from 1 feed and stores raw fields.
+- Status: **COMPLETED**
+
+Note: Detailed spec can be found in [M1.4_spec.md](M1.4_spec.md).
 
 ### Milestone 1.5 – Normalization, Storage, and Deduplication
 
@@ -259,7 +262,7 @@ Note: Detailed spec can be found in [M1.3_spec.md](M1.3_spec.md).
 - [x] 1.1 Repo, CI (See [M1.1_spec.md](M1.1_spec.md))
 - [x] 1.2 FastAPI skeleton (See [M1.2_spec.md](M1.2_spec.md))
 - [x] 1.3 DB bootstrap (See [M1.3_spec.md](M1.3_spec.md))
-- [ ] 1.4 Single-feed ingestion
+- [x] 1.4 Single-feed ingestion (See [M1.4_spec.md](M1.4_spec.md))
 - [ ] 1.5 Normalization & dedup
 - [ ] 1.6 10+ feeds & robustness
 - [ ] 1.7 Baseline relevance

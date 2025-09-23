@@ -83,7 +83,7 @@ This is **Your Morning Brief** - an AI-powered news curation service that will:
 - Use RSS feeds + AI for content filtering and summarization
 - Learn from user feedback to improve relevance
 
-**Current Status:** Milestone 1.3 (Database Bootstrap) - PostgreSQL database layer with SQLAlchemy models and Alembic migrations is complete. Milestones M1.4-M1.8 specifications have been enhanced with comprehensive security requirements. Next milestones will add RSS ingestion, AI processing, and topic management features with enterprise-grade security.
+**Current Status:** Milestone 1.4 (RSS Source Seeding and Single-Feed Ingestion) - Complete RSS ingestion pipeline with comprehensive security architecture is implemented. Includes feed client with SSRF protection, XSS sanitization, content mapper, CLI tools, and full test suite. Next milestones will add normalization/deduplication (M1.5), expand to 10+ feeds (M1.6), and add AI processing capabilities (M1.7-M1.8).
 
 **Key Documents:**
 

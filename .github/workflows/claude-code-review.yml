@@ -1,4 +1,0 @@
-# Temporary file to force GitHub to recognize and then delete this phantom workflow
-name: DELETE ME
-on: []
-jobs: {}

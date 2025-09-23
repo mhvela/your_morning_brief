@@ -6,7 +6,7 @@ import time
 from typing import Any
 from urllib.parse import urlparse
 
-import feedparser  # type: ignore[import-untyped]
+import feedparser
 import httpx
 
 from app.core.config import settings

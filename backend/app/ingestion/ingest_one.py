@@ -245,7 +245,7 @@ def ingest_feed_from_file(file_path: str) -> dict[str, int]:
         )
 
         # Parse feed content directly
-        import feedparser  # type: ignore[import-untyped]
+        import feedparser
 
         feed = feedparser.parse(content)
 

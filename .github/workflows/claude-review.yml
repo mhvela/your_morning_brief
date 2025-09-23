@@ -1,0 +1,62 @@
+name: Claude Code Review
+# Official Claude Code Review workflow
+
+on:
+  pull_request:
+    types: [opened, synchronize, ready_for_review]
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+  id-token: write
+
+jobs:
+  code-review:
+    if: github.event_name == 'pull_request' && github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Claude Code Review
+        uses: anthropics/claude-code-action@v1
+        with:
+          # Review prompt that will be sent to Claude
+          prompt: |
+            Please review this PR following the project standards in CLAUDE.md.
+
+            Focus on:
+            1. Code quality and best practices
+            2. Type safety and error handling
+            3. Test coverage for new functionality
+            4. Security vulnerabilities
+            5. Performance implications
+            6. Adherence to project architecture patterns
+
+            Provide:
+            - Specific, actionable feedback
+            - Suggestions for improvements
+            - Recognition of good patterns
+
+            Be constructive and educational in your feedback.
+
+  respond-to-comments:
+    if: |
+      github.event_name == 'issue_comment' &&
+      github.event.issue.pull_request &&
+      contains(github.event.comment.body, '@claude')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Respond to mention
+        uses: anthropics/claude-code-action@v1
+        with:
+          # Use the comment as the prompt
+          prompt: ${{ github.event.comment.body }}

@@ -1,0 +1,40 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+  - repo: https://github.com/psf/black
+    rev: 24.8.0
+    hooks:
+      - id: black
+        language_version: python3.11
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.6.8
+    hooks:
+      - id: ruff
+        args: ["--fix"]
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: v4.0.0-alpha.8
+    hooks:
+      - id: prettier
+  - repo: local
+    hooks:
+      - id: eslint-frontend
+        name: eslint (frontend)
+        language: system
+        entry: bash -lc 'cd frontend && npm run lint'
+        files: ^frontend/
+        pass_filenames: false
+      - id: check-dependency-sync
+        name: check dependency sync
+        language: python
+        entry: python scripts/check_dependency_sync.py
+        files: ^backend/(requirements\.txt|pyproject\.toml)$
+        pass_filenames: false
+      - id: mypy-backend
+        name: mypy (backend)
+        language: system
+        entry: bash -lc 'cd backend && conda run -n ymb-py311 mypy app/'
+        files: ^backend/app/.*\.py$
+        pass_filenames: false

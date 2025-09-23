@@ -1,10 +1,12 @@
 ## MVP Implementation Plan: Your Morning Brief
 
 ### Scope
+
 - Aligns with PRD Phase 1 (Weeks 1-6): RSS aggregation, basic AI processing, multi-topic management, learning loop, and minimal frontend for daily use.
 - Principle: Keep milestones small, independently testable, and demoable.
 
 ### Environments & Tooling
+
 - Backend: Python, FastAPI
 - Data: PostgreSQL, Redis
 - AI: OpenAI (summarization), simple baseline relevance (keywords/TF-IDF)
@@ -16,7 +18,8 @@
 
 ## Phase 1 (Weeks 1-2): RSS Aggregation + Basic AI Processing
 
-### Milestone 1.1 – Repo, CI, and Dev Scaffolding
+### Milestone 1.1 – Repo, CI, and Dev Scaffolding ✅
+
 - Goal: Establish project structure and quality gates.
 - Deliverables:
   - Monorepo or two folders `backend/`, `frontend/` with READMEs
@@ -24,34 +27,48 @@
   - Dev containers / Dockerfiles and `make` targets (run, test, fmt)
 - Acceptance:
   - CI runs automatically on PRs and `main`, all checks pass on a hello-world test.
+- Status: **COMPLETED**
 
 Note: Detailed spec can be found in [M1.1_spec.md](M1.1_spec.md).
 
-### Milestone 1.2 – FastAPI Skeleton + Health/Version Endpoints
+### Milestone 1.2 – FastAPI Skeleton + Health/Version Endpoints ✅
+
 - Goal: Running API baseline.
 - Deliverables:
   - FastAPI app with `/healthz`, `/readyz`, `/version`
   - Structured logging and basic error middleware
 - Acceptance:
   - `GET /healthz` returns 200 locally and in Docker.
+- Status: **COMPLETED**
 
-### Milestone 1.3 – Database Bootstrap (PostgreSQL) + Migrations
+Note: Detailed spec can be found in [M1.2_spec.md](M1.2_spec.md).
+
+### Milestone 1.3 – Database Bootstrap (PostgreSQL) + Migrations ✅
+
 - Goal: Persistent storage foundation.
 - Deliverables:
   - Migration tooling (Alembic)
   - Initial schema: `users`, `topics`, `sources`, `articles`
 - Acceptance:
   - `alembic upgrade head` succeeds; tables visible; rollback works.
+- Status: **COMPLETED**
 
-### Milestone 1.4 – RSS Source Seeding and Single-Feed Ingestion
+Note: Detailed spec can be found in [M1.3_spec.md](M1.3_spec.md).
+
+### Milestone 1.4 – RSS Source Seeding and Single-Feed Ingestion ✅
+
 - Goal: Fetch and parse first feed.
 - Deliverables:
   - Seed top-quality sources list (start with 3 feeds)
   - Ingestion module using `feedparser` for one feed
 - Acceptance:
   - CLI command ingests ≥10 items from 1 feed and stores raw fields.
+- Status: **COMPLETED**
+
+Note: Detailed spec can be found in [M1.4_spec.md](M1.4_spec.md).
 
 ### Milestone 1.5 – Normalization, Storage, and Deduplication
+
 - Goal: Store clean article records.
 - Deliverables:
   - Normalization pipeline (title, summary, link, published_at)
@@ -60,6 +77,7 @@ Note: Detailed spec can be found in [M1.1_spec.md](M1.1_spec.md).
   - Re-ingestion of same feed yields 0 duplicates; idempotent.
 
 ### Milestone 1.6 – Expand to 10+ Feeds and Basic Error Handling
+
 - Goal: Broader coverage with robustness.
 - Deliverables:
   - Ingest 10–15 sources; per-source backoff/retry
@@ -68,6 +86,7 @@ Note: Detailed spec can be found in [M1.1_spec.md](M1.1_spec.md).
   - ≥10 sources successfully ingest; failures logged without crash.
 
 ### Milestone 1.7 – Baseline Relevance (Keyword/TF-IDF) per Topic
+
 - Goal: First-pass relevance scoring.
 - Deliverables:
   - Topic model: name + keyword bag
@@ -76,6 +95,7 @@ Note: Detailed spec can be found in [M1.1_spec.md](M1.1_spec.md).
   - Given a topic with keywords, top 10 related articles are returned deterministically.
 
 ### Milestone 1.8 – Summarization Service (OpenAI)
+
 - Goal: 2–3 sentence summaries.
 - Deliverables:
   - Summarization module with retry and cost guardrails
@@ -88,6 +108,7 @@ Note: Detailed spec can be found in [M1.1_spec.md](M1.1_spec.md).
 ## Phase 2 (Weeks 3-4): Multi-Topic Management + Learning Loop
 
 ### Milestone 2.1 – Topic CRUD and Association
+
 - Goal: Users manage multiple topics.
 - Deliverables:
   - API: create/list/update/delete topics; associate to `user_id`
@@ -96,6 +117,7 @@ Note: Detailed spec can be found in [M1.1_spec.md](M1.1_spec.md).
   - Postman collection runs CRUD flows; data persists.
 
 ### Milestone 2.2 – Daily Top-3 Selection per Topic
+
 - Goal: Enforce “exactly 3 per topic daily”.
 - Deliverables:
   - Ranker: recency + relevance + source credibility baseline
@@ -104,6 +126,7 @@ Note: Detailed spec can be found in [M1.1_spec.md](M1.1_spec.md).
   - For a topic, exactly 3 are stored for the day; repeats prevented.
 
 ### Milestone 2.3 – Feedback API (Thumbs Up/Down + Optional Text)
+
 - Goal: Collect signals for learning.
 - Deliverables:
   - Endpoint to rate a delivered article and optional comment
@@ -112,6 +135,7 @@ Note: Detailed spec can be found in [M1.1_spec.md](M1.1_spec.md).
   - Ratings recorded; duplicate rating updates last value cleanly.
 
 ### Milestone 2.4 – Simple Learning Update
+
 - Goal: Adapt topic keywords from feedback.
 - Deliverables:
   - Nightly job adjusts keyword weights from positive/negative feedback
@@ -119,6 +143,7 @@ Note: Detailed spec can be found in [M1.1_spec.md](M1.1_spec.md).
   - After synthetic feedback, subsequent rankings shift as expected.
 
 ### Milestone 2.5 – Scheduler/Worker for Polling and Jobs
+
 - Goal: Automate ingestion and selection.
 - Deliverables:
   - Scheduler (APScheduler or Celery beat)
@@ -127,6 +152,7 @@ Note: Detailed spec can be found in [M1.1_spec.md](M1.1_spec.md).
   - Jobs run on schedule locally; logs confirm execution windows.
 
 ### Milestone 2.6 – Caching Layer (Redis) for Read APIs
+
 - Goal: Fast user responses.
 - Deliverables:
   - Cache recent topic results and daily picks
@@ -139,6 +165,7 @@ Note: Detailed spec can be found in [M1.1_spec.md](M1.1_spec.md).
 ## Phase 3 (Weeks 5-6): Minimal Frontend for Daily Use
 
 ### Milestone 3.1 – Next.js App Skeleton + Design System Setup
+
 - Goal: Frontend baseline.
 - Deliverables:
   - Next.js app, Tailwind, basic layout, env wiring
@@ -146,6 +173,7 @@ Note: Detailed spec can be found in [M1.1_spec.md](M1.1_spec.md).
   - App runs locally; `/healthz` backend status shown in footer.
 
 ### Milestone 3.2 – Topic Management UI
+
 - Goal: Create/edit/delete topics.
 - Deliverables:
   - Topic list + modal to add/edit keywords
@@ -153,6 +181,7 @@ Note: Detailed spec can be found in [M1.1_spec.md](M1.1_spec.md).
   - Can add a topic and confirm via API that it exists.
 
 ### Milestone 3.3 – Daily Brief UI (Top 3 per Topic)
+
 - Goal: Core daily view.
 - Deliverables:
   - Topic sections with 3 article cards each
@@ -161,6 +190,7 @@ Note: Detailed spec can be found in [M1.1_spec.md](M1.1_spec.md).
   - For seeded topics, 3 cards render with live data.
 
 ### Milestone 3.4 – Feedback Controls and Basic Persistence
+
 - Goal: Close the loop.
 - Deliverables:
   - Thumbs up/down per card; optional text feedback dialog
@@ -168,6 +198,7 @@ Note: Detailed spec can be found in [M1.1_spec.md](M1.1_spec.md).
   - UI actions persist and are visible in backend logs/DB.
 
 ### Milestone 3.5 – Save/Share (MVP) and Empty States
+
 - Goal: Essential usability polish.
 - Deliverables:
   - Save to local list (DB), copy link share, empty/loading states
@@ -175,6 +206,7 @@ Note: Detailed spec can be found in [M1.1_spec.md](M1.1_spec.md).
   - Saved items appear in a basic “Saved” view; share copies URL.
 
 ### Milestone 3.6 – E2E Smoke, Demo Script, and Metrics
+
 - Goal: Validate end-to-end and demonstrate value.
 - Deliverables:
   - Cypress/Playwright smoke covering topic add → brief → feedback
@@ -186,6 +218,7 @@ Note: Detailed spec can be found in [M1.1_spec.md](M1.1_spec.md).
 ---
 
 ## APIs (Minimum for MVP)
+
 - GET `/healthz`, `/readyz`, `/version`
 - POST `/topics`, GET `/topics`, PATCH `/topics/:id`, DELETE `/topics/:id`
 - GET `/topics/:id/daily` → 3 articles with summaries and attribution
@@ -194,6 +227,7 @@ Note: Detailed spec can be found in [M1.1_spec.md](M1.1_spec.md).
 ---
 
 ## Data Model (Initial)
+
 - `users(id, email)` – stub for MVP
 - `topics(id, user_id, name, keywords, created_at)`
 - `sources(id, name, url, credibility_score)`
@@ -205,6 +239,7 @@ Note: Detailed spec can be found in [M1.1_spec.md](M1.1_spec.md).
 ---
 
 ## Testing & Validation Strategy
+
 - Unit: ingestion parsers, scoring, summarization wrapper
 - Integration: DB migrations, dedup, ranker determinism, scheduler
 - Contract: API schemas via OpenAPI, frontend client generation
@@ -214,6 +249,7 @@ Note: Detailed spec can be found in [M1.1_spec.md](M1.1_spec.md).
 ---
 
 ## Risks & Mitigations (MVP)
+
 - Feed reliability: diversify sources; per-source retries/backoff
 - AI costs: summarize only candidate shortlist; cache summaries
 - Duplicate/near-duplicate: robust hashing; title+link+date heuristics
@@ -222,10 +258,11 @@ Note: Detailed spec can be found in [M1.1_spec.md](M1.1_spec.md).
 ---
 
 ## Milestone Checklist (for tracking)
-- [ ] 1.1 Repo, CI
-- [ ] 1.2 FastAPI skeleton
-- [ ] 1.3 DB bootstrap
-- [ ] 1.4 Single-feed ingestion
+
+- [x] 1.1 Repo, CI (See [M1.1_spec.md](M1.1_spec.md))
+- [x] 1.2 FastAPI skeleton (See [M1.2_spec.md](M1.2_spec.md))
+- [x] 1.3 DB bootstrap (See [M1.3_spec.md](M1.3_spec.md))
+- [x] 1.4 Single-feed ingestion (See [M1.4_spec.md](M1.4_spec.md))
 - [ ] 1.5 Normalization & dedup
 - [ ] 1.6 10+ feeds & robustness
 - [ ] 1.7 Baseline relevance

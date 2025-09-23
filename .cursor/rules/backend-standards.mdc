@@ -6,19 +6,32 @@ description: Backend coding standards for FastAPI service (Python 3.11)
 
 - Language/runtime: Python 3.11; adhere to ruff, black, mypy; tests with pytest
 - Project structure (initial): `app/main.py`, `app/api/health.py`, domain modules under `app/`
+- **Security-first development**: Follow security-standards.mdc for all implementations
 - Endpoints:
   - Provide `/healthz`, `/readyz`, `/version`
   - Use clear, RESTful routes; return typed Pydantic models
+  - **Security**: Input validation with Pydantic, rate limiting with slowapi
 - Types & style:
   - Type-annotate public functions and endpoint handlers
   - Avoid `Any`; prefer precise types; use `typing` and Pydantic models
+  - **Security**: Use Pydantic for all external input validation
 - Errors & logging:
   - Use exception handlers; avoid bare `except`
   - Structured logging; include request id where available
+  - **Security**: Never log sensitive data (API keys, passwords); mask in logs
+- Database:
+  - **Security**: MANDATORY SQLAlchemy ORM with parameterized queries
+  - **Security**: Never use string concatenation for SQL queries
+- External APIs:
+  - **Security**: Encrypt API keys at rest using cryptography.fernet
+  - **Security**: Implement rate limiting and cost controls
 - Testing:
   - Pytest for unit/integration; deterministic tests (no external network)
   - Use factories/fixtures; cover success and failure paths
+  - **Security**: Include security tests (XSS, SQL injection, SSRF protection)
 - Quality gates:
-  - CI must pass: ruff/black (format), mypy (types), pytest (tests)
+  - CI must pass: ruff/black (format), mypy (types), pytest (tests), security tests
+  - **Security**: SAST scanning and dependency vulnerability checks
 - Config:
   - Load from environment; commit `.env.example` only; never secrets
+  - **Security**: Use encrypted environment variables for sensitive data

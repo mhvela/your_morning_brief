@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>XSS Test Feed</title>
+    <link>https://malicious.example.com</link>
+    <description>Feed containing XSS payloads for security testing</description>
+
+    <item>
+      <title>&lt;script&gt;alert('XSS in title')&lt;/script&gt; Tech News</title>
+      <link>https://malicious.example.com/article1</link>
+      <description>&lt;script&gt;alert('XSS')&lt;/script&gt;&lt;img src=x onerror=alert('XSS')&gt; This article contains malicious JavaScript code that should be sanitized.</description>
+      <pubDate>Mon, 23 Sep 2024 09:00:00 GMT</pubDate>
+      <author>&lt;script&gt;alert('XSS in author')&lt;/script&gt;</author>
+    </item>
+
+    <item>
+      <title>Article with HTML injection</title>
+      <link>https://malicious.example.com/article2</link>
+      <description>&lt;iframe src="javascript:alert('XSS')"&gt;&lt;/iframe&gt;&lt;object data="javascript:alert('XSS')"&gt;&lt;/object&gt; Content with various HTML injection attempts.</description>
+      <pubDate>Mon, 23 Sep 2024 08:30:00 GMT</pubDate>
+    </item>
+
+    <item>
+      <title>SQL Injection in content</title>
+      <link>https://malicious.example.com/article3</link>
+      <description>'; DROP TABLE articles; -- This description contains SQL injection attempts that should be handled safely.</description>
+      <pubDate>Mon, 23 Sep 2024 08:00:00 GMT</pubDate>
+    </item>
+
+  </channel>
+</rss>

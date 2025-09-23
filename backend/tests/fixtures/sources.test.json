@@ -1,0 +1,23 @@
+[
+  {
+    "name": "Test Tech Source",
+    "url": "https://test.example.com",
+    "feed_url": "https://test.example.com/feed.xml",
+    "credibility_score": 0.8,
+    "is_active": true
+  },
+  {
+    "name": "Another Test Source",
+    "url": "https://test2.example.com",
+    "feed_url": "https://test2.example.com/rss.xml",
+    "credibility_score": 0.7,
+    "is_active": true
+  },
+  {
+    "name": "Inactive Test Source",
+    "url": "https://inactive.example.com",
+    "feed_url": "https://inactive.example.com/feed",
+    "credibility_score": 0.6,
+    "is_active": false
+  }
+]

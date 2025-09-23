@@ -1,0 +1,17 @@
+---
+alwaysApply: true
+description: Python environment usage for backend
+---
+# Python Environment (Backend)
+
+- Conda env: `ymb-py311` (Python 3.11) as listed in `README.md`.
+- Always use this env for backend Python work: installing packages, running tests, linters, type-checkers, Alembic, or the app.
+- Non-interactive:
+  - conda run -n ymb-py311 python -m pip install ...
+  - conda run -n ymb-py311 mypy backend
+  - conda run -n ymb-py311 pytest
+  - conda run -n ymb-py311 uvicorn app.main:app --reload
+- Interactive:
+  - source "$HOME/miniforge3/etc/profile.d/conda.sh" && conda activate ymb-py311
+- Do not create or use additional venvs (python -m venv .venv) for this repo; installs should target `ymb-py311`.
+- Avoid system pip; use python -m pip inside the Conda env, or conda run -n ymb-py311 pip ...

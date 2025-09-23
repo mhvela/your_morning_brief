@@ -1,4 +1,5 @@
 name: Claude Code Review
+# Official Claude Code Review workflow
 
 on:
   pull_request:

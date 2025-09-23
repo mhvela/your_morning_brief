@@ -52,14 +52,14 @@ class Settings(BaseSettings):
     summary_max_len: int = 4000
     max_response_size_mb: int = 10
     blocked_networks: list[str] = [
-        "10.0.0.0/8",      # Private Class A
-        "172.16.0.0/12",   # Private Class B
+        "10.0.0.0/8",  # Private Class A
+        "172.16.0.0/12",  # Private Class B
         "192.168.0.0/16",  # Private Class C
-        "127.0.0.0/8",     # Loopback
+        "127.0.0.0/8",  # Loopback
         "169.254.0.0/16",  # Link-local
-        "::1/128",         # IPv6 loopback
-        "fc00::/7",        # IPv6 unique local
-        "fe80::/10",       # IPv6 link-local
+        "::1/128",  # IPv6 loopback
+        "fc00::/7",  # IPv6 unique local
+        "fe80::/10",  # IPv6 link-local
     ]
     allowed_url_schemes: list[str] = ["http", "https"]
 

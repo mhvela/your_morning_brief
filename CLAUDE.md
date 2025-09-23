@@ -191,6 +191,43 @@ Claude will automatically review all non-draft pull requests focusing on:
 4. Reference the detailed spec file (e.g., `M1.3_spec.md`)
 5. Update the "Current Status" section in this CLAUDE.md file
 
+## 🚨 MANDATORY Milestone Completion Checklist 🚨
+
+**⚠️ A milestone is NOT complete until ALL items below are checked off ⚠️**
+
+Use this checklist for EVERY milestone completion. Always create a TodoWrite list with these exact items:
+
+### Technical Implementation
+
+- [ ] All technical requirements implemented and functional
+- [ ] All acceptance criteria from milestone spec met
+- [ ] Code quality checks pass: `make lint` (ruff, black, mypy, eslint)
+- [ ] All tests pass: `make test` (backend pytest, frontend vitest)
+- [ ] Security requirements validated (if applicable)
+
+### Documentation Updates (MANDATORY)
+
+- [ ] Update `MVP_imp_plan.md`:
+  - [ ] Add ✅ checkmark to milestone title
+  - [ ] Add "Status: **COMPLETED**" to milestone description
+  - [ ] Add reference to detailed spec file (e.g., "Note: Detailed spec can be found in [M1.X_spec.md](M1.X_spec.md)")
+- [ ] Update `CLAUDE.md` "Current Status" section to reflect latest completion
+- [ ] Update milestone checklist at bottom of `MVP_imp_plan.md` from `[ ]` to `[x]`
+
+### Commit and Push
+
+- [ ] Create comprehensive commit message describing implementation
+- [ ] Push changes to GitHub
+- [ ] Verify all changes are reflected in remote repository
+
+### Process Validation
+
+- [ ] All TodoWrite items marked as completed
+- [ ] Documentation accurately reflects milestone completion
+- [ ] Ready for next milestone or PR creation
+
+**Personal Workflow Rule:** Never mark milestone TodoWrite items as "completed" without first completing ALL documentation updates above.
+
 **When working on milestones:**
 
 - Document any partial progress or blockers

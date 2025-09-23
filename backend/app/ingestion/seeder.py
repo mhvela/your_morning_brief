@@ -1,9 +1,7 @@
 """Source seeding functionality for RSS feeds."""
 
 import json
-import logging
-from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from pydantic import BaseModel, ValidationError
 from sqlalchemy.exc import SQLAlchemyError
@@ -22,11 +20,11 @@ class SourceSeedModel(BaseModel):
     name: str
     url: str
     feed_url: str
-    credibility_score: Optional[float] = 0.5
-    is_active: Optional[bool] = True
+    credibility_score: float | None = 0.5
+    is_active: bool | None = True
 
 
-def seed_sources(sources_data: List[Dict[str, Any]]) -> Dict[str, int]:
+def seed_sources(sources_data: list[dict[str, Any]]) -> dict[str, int]:
     """
     Seed sources from list of dictionaries.
 
@@ -53,22 +51,26 @@ def seed_sources(sources_data: List[Dict[str, Any]]) -> Dict[str, int]:
             validated_source = SourceSeedModel(**source_data)
             validated_sources.append(validated_source)
         except ValidationError as e:
-            raise ValueError(f"Invalid source data at index {i}: {e}")
+            raise ValueError(f"Invalid source data at index {i}: {e}") from e
 
     # Process sources in database
     with SessionLocal() as db:
         try:
             for validated_source in validated_sources:
                 # Check if source exists by feed_url (unique constraint)
-                existing_source = db.query(Source).filter_by(
-                    feed_url=validated_source.feed_url
-                ).first()
+                existing_source = (
+                    db.query(Source)
+                    .filter_by(feed_url=validated_source.feed_url)
+                    .first()
+                )
 
                 if existing_source:
                     # Update existing source
                     existing_source.name = validated_source.name
                     existing_source.url = validated_source.url
-                    existing_source.credibility_score = validated_source.credibility_score
+                    existing_source.credibility_score = (
+                        validated_source.credibility_score
+                    )
                     existing_source.is_active = validated_source.is_active
                     result["updated"] += 1
                     logger.info(
@@ -76,8 +78,8 @@ def seed_sources(sources_data: List[Dict[str, Any]]) -> Dict[str, int]:
                         extra={
                             "source_id": existing_source.id,
                             "name": validated_source.name,
-                            "feed_url": validated_source.feed_url
-                        }
+                            "feed_url": validated_source.feed_url,
+                        },
                     )
                 else:
                     # Create new source
@@ -86,7 +88,7 @@ def seed_sources(sources_data: List[Dict[str, Any]]) -> Dict[str, int]:
                         url=validated_source.url,
                         feed_url=validated_source.feed_url,
                         credibility_score=validated_source.credibility_score,
-                        is_active=validated_source.is_active
+                        is_active=validated_source.is_active,
                     )
                     db.add(new_source)
                     result["created"] += 1
@@ -94,8 +96,8 @@ def seed_sources(sources_data: List[Dict[str, Any]]) -> Dict[str, int]:
                         "Created new source",
                         extra={
                             "name": validated_source.name,
-                            "feed_url": validated_source.feed_url
-                        }
+                            "feed_url": validated_source.feed_url,
+                        },
                     )
 
             # Commit all changes
@@ -103,11 +105,15 @@ def seed_sources(sources_data: List[Dict[str, Any]]) -> Dict[str, int]:
 
         except SQLAlchemyError as e:
             db.rollback()
-            logger.error("Database error during source seeding", extra={"error": str(e)})
+            logger.error(
+                "Database error during source seeding", extra={"error": str(e)}
+            )
             raise
         except Exception as e:
             db.rollback()
-            logger.error("Unexpected error during source seeding", extra={"error": str(e)})
+            logger.error(
+                "Unexpected error during source seeding", extra={"error": str(e)}
+            )
             raise
 
     logger.info(
@@ -115,14 +121,14 @@ def seed_sources(sources_data: List[Dict[str, Any]]) -> Dict[str, int]:
         extra={
             "created": result["created"],
             "updated": result["updated"],
-            "skipped": result["skipped"]
-        }
+            "skipped": result["skipped"],
+        },
     )
 
     return result
 
 
-def seed_sources_from_file(file_path: str) -> Dict[str, int]:
+def seed_sources_from_file(file_path: str) -> dict[str, int]:
     """
     Seed sources from JSON file.
 
@@ -138,25 +144,25 @@ def seed_sources_from_file(file_path: str) -> Dict[str, int]:
         Exception: If database operation fails
     """
     try:
-        with open(file_path, 'r', encoding='utf-8') as f:
+        with open(file_path, encoding="utf-8") as f:
             sources_data = json.load(f)
-    except FileNotFoundError:
-        raise FileNotFoundError(f"Source seed file not found: {file_path}")
+    except FileNotFoundError as e:
+        raise FileNotFoundError(f"Source seed file not found: {file_path}") from e
     except json.JSONDecodeError as e:
-        raise ValueError(f"Invalid JSON in source seed file: {e}")
+        raise ValueError(f"Invalid JSON in source seed file: {e}") from e
 
     if not isinstance(sources_data, list):
         raise ValueError("Source seed file must contain a JSON array")
 
     logger.info(
         "Loading sources from file",
-        extra={"file_path": file_path, "source_count": len(sources_data)}
+        extra={"file_path": file_path, "source_count": len(sources_data)},
     )
 
     return seed_sources(sources_data)
 
 
-def validate_source_data(source_data: Dict[str, Any]) -> None:
+def validate_source_data(source_data: dict[str, Any]) -> None:
     """
     Validate individual source data.
 
@@ -178,15 +184,14 @@ def validate_source_data(source_data: Dict[str, Any]) -> None:
     # Validate optional fields
     if "credibility_score" in source_data:
         score = source_data["credibility_score"]
-        if not isinstance(score, (int, float)) or not (0.0 <= score <= 1.0):
+        if not isinstance(score, int | float) or not (0.0 <= score <= 1.0):
             raise ValueError("credibility_score must be a number between 0.0 and 1.0")
 
-    if "is_active" in source_data:
-        if not isinstance(source_data["is_active"], bool):
-            raise ValueError("is_active must be a boolean")
+    if "is_active" in source_data and not isinstance(source_data["is_active"], bool):
+        raise ValueError("is_active must be a boolean")
 
 
-def get_source_by_feed_url(feed_url: str, db: Session) -> Optional[Source]:
+def get_source_by_feed_url(feed_url: str, db: Session) -> Source | None:
     """
     Get source by feed URL.
 
@@ -200,7 +205,7 @@ def get_source_by_feed_url(feed_url: str, db: Session) -> Optional[Source]:
     return db.query(Source).filter_by(feed_url=feed_url).first()
 
 
-def get_source_by_id(source_id: int, db: Session) -> Optional[Source]:
+def get_source_by_id(source_id: int, db: Session) -> Source | None:
     """
     Get source by ID.
 
@@ -214,7 +219,7 @@ def get_source_by_id(source_id: int, db: Session) -> Optional[Source]:
     return db.query(Source).filter_by(id=source_id).first()
 
 
-def get_or_create_source(feed_url: str, name: Optional[str] = None) -> Source:
+def get_or_create_source(feed_url: str, name: str | None = None) -> Source:
     """
     Get existing source or create inactive placeholder.
 
@@ -238,7 +243,7 @@ def get_or_create_source(feed_url: str, name: Optional[str] = None) -> Source:
             url=feed_url,  # Use feed_url as fallback for url
             feed_url=feed_url,
             credibility_score=0.5,
-            is_active=False  # Inactive until properly configured
+            is_active=False,  # Inactive until properly configured
         )
 
         try:
@@ -251,8 +256,8 @@ def get_or_create_source(feed_url: str, name: Optional[str] = None) -> Source:
                 extra={
                     "source_id": new_source.id,
                     "name": placeholder_name,
-                    "feed_url": feed_url
-                }
+                    "feed_url": feed_url,
+                },
             )
 
             return new_source

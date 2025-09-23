@@ -1,8 +1,9 @@
 """Security-focused tests for RSS ingestion functionality."""
 
-import pytest
-from unittest.mock import Mock, patch
 import sqlite3
+from unittest.mock import Mock, patch
+
+import pytest
 
 # These tests will initially fail - that's the point of TDD!
 # We'll implement the functionality to make them pass.
@@ -15,16 +16,17 @@ class TestSSRFProtection:
         """Test that private IP ranges are blocked."""
         # Test cases for private IP ranges that should be blocked
         blocked_urls = [
-            "http://10.0.0.1/feed.xml",         # 10.0.0.0/8
-            "http://172.16.0.1/feed.xml",       # 172.16.0.0/12
-            "http://192.168.1.1/feed.xml",      # 192.168.0.0/16
-            "http://127.0.0.1/feed.xml",        # 127.0.0.0/8 (localhost)
-            "http://localhost/feed.xml",        # localhost domain
-            "http://169.254.1.1/feed.xml",      # 169.254.0.0/16 (link-local)
+            "http://10.0.0.1/feed.xml",  # 10.0.0.0/8
+            "http://172.16.0.1/feed.xml",  # 172.16.0.0/12
+            "http://192.168.1.1/feed.xml",  # 192.168.0.0/16
+            "http://127.0.0.1/feed.xml",  # 127.0.0.0/8 (localhost)
+            "http://localhost/feed.xml",  # localhost domain
+            "http://169.254.1.1/feed.xml",  # 169.254.0.0/16 (link-local)
         ]
 
         # This will fail until we implement the feed client
         from app.ingestion.feed_client import FeedClient
+
         client = FeedClient()
 
         for url in blocked_urls:
@@ -41,6 +43,7 @@ class TestSSRFProtection:
         ]
 
         from app.ingestion.feed_client import FeedClient
+
         client = FeedClient()
 
         for url in allowed_urls:
@@ -62,6 +65,7 @@ class TestSSRFProtection:
         ]
 
         from app.ingestion.feed_client import FeedClient
+
         client = FeedClient()
 
         for url in invalid_schemes:
@@ -79,9 +83,9 @@ class TestXSSPrevention:
         malicious_content = '<script>alert("xss")</script>Safe content'
         cleaned = sanitize_html(malicious_content)
 
-        assert '<script>' not in cleaned
-        assert 'alert(' not in cleaned
-        assert 'Safe content' in cleaned
+        assert "<script>" not in cleaned
+        assert "alert(" not in cleaned
+        assert "Safe content" in cleaned
 
     def test_strips_event_handlers(self):
         """Test that HTML event handlers are removed."""
@@ -90,30 +94,30 @@ class TestXSSPrevention:
         malicious_content = '<img src="x" onerror="alert(\'xss\')" />Image text'
         cleaned = sanitize_html(malicious_content)
 
-        assert 'onerror' not in cleaned
-        assert 'alert(' not in cleaned
-        assert 'Image text' in cleaned
+        assert "onerror" not in cleaned
+        assert "alert(" not in cleaned
+        assert "Image text" in cleaned
 
     def test_strips_all_html_tags(self):
         """Test that ALL HTML tags are removed per security requirement."""
         from app.ingestion.mapper import sanitize_html
 
-        html_content = '''
+        html_content = """
         <h1>Title</h1>
         <p>Paragraph with <a href="http://example.com">link</a></p>
         <div>Content</div>
         <iframe src="malicious.com"></iframe>
-        '''
+        """
         cleaned = sanitize_html(html_content)
 
         # Should have no HTML tags at all
-        assert '<' not in cleaned
-        assert '>' not in cleaned
+        assert "<" not in cleaned
+        assert ">" not in cleaned
         # But should preserve text content
-        assert 'Title' in cleaned
-        assert 'Paragraph' in cleaned
-        assert 'link' in cleaned
-        assert 'Content' in cleaned
+        assert "Title" in cleaned
+        assert "Paragraph" in cleaned
+        assert "link" in cleaned
+        assert "Content" in cleaned
 
     def test_handles_malformed_html(self):
         """Test handling of malformed HTML."""
@@ -122,8 +126,8 @@ class TestXSSPrevention:
         malformed_content = '<script>alert("xss"<div>unclosed<p>tags'
         cleaned = sanitize_html(malformed_content)
 
-        assert '<script>' not in cleaned
-        assert 'alert(' not in cleaned
+        assert "<script>" not in cleaned
+        assert "alert(" not in cleaned
 
 
 class TestSQLInjectionPrevention:
@@ -138,7 +142,7 @@ class TestSQLInjectionPrevention:
                 "name": "'; DROP TABLE sources; --",
                 "url": "http://malicious.com",
                 "feed_url": "http://malicious.com/feed.xml",
-                "credibility_score": 0.5
+                "credibility_score": 0.5,
             }
         ]
 
@@ -150,7 +154,6 @@ class TestSQLInjectionPrevention:
     def test_article_insertion_with_malicious_content(self):
         """Test that article insertion handles SQL injection attempts."""
         from app.ingestion.mapper import ArticleMapper
-        from app.models.article import Article
 
         # Mock feed entry with SQL injection attempt
         malicious_entry = Mock()
@@ -197,11 +200,11 @@ class TestInputValidation:
         client = FeedClient()
 
         # Mock a response that's too large
-        with patch('httpx.get') as mock_get:
+        with patch("httpx.get") as mock_get:
             # Simulate 11MB response (over 10MB limit)
             mock_response = Mock()
-            mock_response.content = b'x' * (11 * 1024 * 1024)
-            mock_response.headers = {'content-length': str(11 * 1024 * 1024)}
+            mock_response.content = b"x" * (11 * 1024 * 1024)
+            mock_response.headers = {"content-length": str(11 * 1024 * 1024)}
             mock_get.return_value = mock_response
 
             with pytest.raises(ValueError, match="Response too large"):
@@ -209,12 +212,13 @@ class TestInputValidation:
 
     def test_timeout_enforcement(self):
         """Test that timeouts are properly enforced."""
-        from app.ingestion.feed_client import FeedClient
         import httpx
+
+        from app.ingestion.feed_client import FeedClient
 
         client = FeedClient()
 
-        with patch('httpx.Client') as mock_client_class:
+        with patch("httpx.Client") as mock_client_class:
             mock_client = Mock()
             mock_client_class.return_value.__enter__.return_value = mock_client
             mock_client.get.side_effect = httpx.TimeoutException("Request timed out")
@@ -244,9 +248,15 @@ class TestContentHashSecurity:
         """Test that different content produces different hashes."""
         from app.ingestion.mapper import generate_content_hash
 
-        hash1 = generate_content_hash("Title1", "https://example.com/1", "2024-09-23T09:00:00Z")
-        hash2 = generate_content_hash("Title2", "https://example.com/2", "2024-09-23T09:00:00Z")
-        hash3 = generate_content_hash("Title1", "https://example.com/1", "2024-09-23T10:00:00Z")
+        hash1 = generate_content_hash(
+            "Title1", "https://example.com/1", "2024-09-23T09:00:00Z"
+        )
+        hash2 = generate_content_hash(
+            "Title2", "https://example.com/2", "2024-09-23T09:00:00Z"
+        )
+        hash3 = generate_content_hash(
+            "Title1", "https://example.com/1", "2024-09-23T10:00:00Z"
+        )
 
         assert hash1 != hash2
         assert hash1 != hash3
@@ -260,7 +270,9 @@ class TestContentHashSecurity:
         malicious_link = "javascript:alert('xss')"
 
         # Should not raise exceptions and should produce valid hash
-        content_hash = generate_content_hash(malicious_title, malicious_link, "2024-09-23T09:00:00Z")
+        content_hash = generate_content_hash(
+            malicious_title, malicious_link, "2024-09-23T09:00:00Z"
+        )
         assert len(content_hash) == 64
         assert content_hash.isalnum()  # Should be hex
 
@@ -272,12 +284,12 @@ class TestDatabaseSecurity:
         """Test that only parameterized queries are used."""
         # This is more of a code review test, but we can check that
         # our ORM usage follows secure patterns
-        from app.models.source import Source
         from app.models.article import Article
+        from app.models.source import Source
 
         # Verify models use SQLAlchemy ORM (which uses parameterized queries)
-        assert hasattr(Source, '__tablename__')
-        assert hasattr(Article, '__tablename__')
+        assert hasattr(Source, "__tablename__")
+        assert hasattr(Article, "__tablename__")
 
         # The actual test is in our implementation - we should never
         # use string concatenation or f-strings for SQL

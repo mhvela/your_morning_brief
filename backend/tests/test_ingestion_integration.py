@@ -1,12 +1,11 @@
 """Integration tests for RSS ingestion functionality."""
 
-import pytest
-from unittest.mock import Mock, patch, mock_open
-import tempfile
 import json
+import tempfile
 from pathlib import Path
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from unittest.mock import Mock, patch
+
+import pytest
 
 # These tests will initially fail - that's the point of TDD!
 
@@ -23,11 +22,11 @@ class TestSourceSeedingIntegration:
                 "url": "https://integration.example.com",
                 "feed_url": "https://integration.example.com/feed.xml",
                 "credibility_score": 0.9,
-                "is_active": True
+                "is_active": True,
             }
         ]
 
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
             json.dump(sources_data, f)
             temp_file = f.name
 
@@ -38,9 +37,9 @@ class TestSourceSeedingIntegration:
 
     def test_seed_sources_creates_database_records(self, temp_sources_file):
         """Test that seeding creates actual database records."""
+        from app.db.session import SessionLocal
         from app.ingestion.seeder import seed_sources_from_file
         from app.models.source import Source
-        from app.db.session import SessionLocal
 
         # Run seeding
         result = seed_sources_from_file(temp_sources_file)
@@ -48,9 +47,11 @@ class TestSourceSeedingIntegration:
 
         # Verify in database
         with SessionLocal() as db:
-            source = db.query(Source).filter_by(
-                feed_url="https://integration.example.com/feed.xml"
-            ).first()
+            source = (
+                db.query(Source)
+                .filter_by(feed_url="https://integration.example.com/feed.xml")
+                .first()
+            )
 
             assert source is not None
             assert source.name == "Integration Test Source"
@@ -76,15 +77,15 @@ class TestFeedIngestionIntegration:
 
     def test_ingest_from_local_feed_file(self):
         """Test ingestion from local RSS feed file."""
+        from app.db.session import SessionLocal
         from app.ingestion.ingest_one import ingest_feed_from_file
         from app.models.article import Article
-        from app.db.session import SessionLocal
 
         # Use our test fixture
         feed_file = Path(__file__).parent / "fixtures" / "feeds" / "sample_feed.xml"
 
         # Mock source exists
-        with patch('app.ingestion.ingest_one.get_or_create_source') as mock_source:
+        with patch("app.ingestion.ingest_one.get_or_create_source") as mock_source:
             mock_source.return_value = Mock(id=1, name="Test Source")
 
             result = ingest_feed_from_file(str(feed_file))
@@ -99,7 +100,9 @@ class TestFeedIngestionIntegration:
             assert len(articles) >= 10
 
             # Check specific article
-            ai_article = next((a for a in articles if "AI Breakthrough" in a.title), None)
+            ai_article = next(
+                (a for a in articles if "AI Breakthrough" in a.title), None
+            )
             assert ai_article is not None
             assert ai_article.link == "https://example.com/article1"
             assert "language processing" in ai_article.summary_raw.lower()
@@ -111,7 +114,7 @@ class TestFeedIngestionIntegration:
         feed_file = Path(__file__).parent / "fixtures" / "feeds" / "sample_feed.xml"
 
         # Mock source exists
-        with patch('app.ingestion.ingest_one.get_or_create_source') as mock_source:
+        with patch("app.ingestion.ingest_one.get_or_create_source") as mock_source:
             mock_source.return_value = Mock(id=1, name="Test Source")
 
             # First ingestion
@@ -125,14 +128,16 @@ class TestFeedIngestionIntegration:
 
     def test_ingest_with_malicious_content(self):
         """Test ingestion sanitizes malicious content."""
+        from app.db.session import SessionLocal
         from app.ingestion.ingest_one import ingest_feed_from_file
         from app.models.article import Article
-        from app.db.session import SessionLocal
 
         # Use malicious feed fixture
-        feed_file = Path(__file__).parent / "fixtures" / "malicious_feeds" / "xss_feed.xml"
+        feed_file = (
+            Path(__file__).parent / "fixtures" / "malicious_feeds" / "xss_feed.xml"
+        )
 
-        with patch('app.ingestion.ingest_one.get_or_create_source') as mock_source:
+        with patch("app.ingestion.ingest_one.get_or_create_source") as mock_source:
             mock_source.return_value = Mock(id=999, name="Malicious Source")
 
             result = ingest_feed_from_file(str(feed_file))
@@ -145,20 +150,22 @@ class TestFeedIngestionIntegration:
 
             for article in articles:
                 # Should not contain any script tags or event handlers
-                assert '<script>' not in article.title
-                assert '<script>' not in article.summary_raw or article.summary_raw is None
-                assert 'onerror' not in (article.summary_raw or '')
-                assert 'javascript:' not in (article.summary_raw or '')
+                assert "<script>" not in article.title
+                assert (
+                    "<script>" not in article.summary_raw or article.summary_raw is None
+                )
+                assert "onerror" not in (article.summary_raw or "")
+                assert "javascript:" not in (article.summary_raw or "")
 
     def test_ingest_updates_source_metadata(self):
         """Test that ingestion updates source last_fetched_at and error counts."""
+        from app.db.session import SessionLocal
         from app.ingestion.ingest_one import ingest_feed_from_file
         from app.models.source import Source
-        from app.db.session import SessionLocal
 
         feed_file = Path(__file__).parent / "fixtures" / "feeds" / "sample_feed.xml"
 
-        with patch('app.ingestion.ingest_one.get_or_create_source') as mock_source:
+        with patch("app.ingestion.ingest_one.get_or_create_source") as mock_source:
             mock_source.return_value = Mock(id=1, name="Test Source")
 
             result = ingest_feed_from_file(str(feed_file))
@@ -176,8 +183,9 @@ class TestCLIIntegration:
 
     def test_cli_seed_sources_command(self):
         """Test CLI source seeding command."""
-        from app.ingestion.ingest_one import main
         import sys
+
+        from app.ingestion.ingest_one import main
 
         # Test file path
         test_file = Path(__file__).parent / "fixtures" / "sources.test.json"
@@ -185,7 +193,7 @@ class TestCLIIntegration:
         # Mock command line arguments
         test_args = ["ingest_one.py", "--seed-sources", str(test_file)]
 
-        with patch.object(sys, 'argv', test_args):
+        with patch.object(sys, "argv", test_args):
             # Should run without exceptions
             try:
                 result = main()
@@ -197,59 +205,66 @@ class TestCLIIntegration:
 
     def test_cli_ingest_feed_by_url_command(self):
         """Test CLI feed ingestion by URL command."""
-        from app.ingestion.ingest_one import main
         import sys
+
+        from app.ingestion.ingest_one import main
 
         test_args = ["ingest_one.py", "--feed-url", "https://example.com/feed.xml"]
 
-        with patch.object(sys, 'argv', test_args):
-            with patch('app.ingestion.feed_client.FeedClient.fetch_feed') as mock_fetch:
-                # Mock successful feed fetch
-                mock_feed = Mock()
-                mock_feed.entries = []
-                mock_fetch.return_value = mock_feed
+        with (
+            patch.object(sys, "argv", test_args),
+            patch("app.ingestion.feed_client.FeedClient.fetch_feed") as mock_fetch,
+        ):
+            # Mock successful feed fetch
+            mock_feed = Mock()
+            mock_feed.entries = []
+            mock_fetch.return_value = mock_feed
 
-                try:
-                    result = main()
-                    assert result == 0 or result is None
-                except SystemExit as e:
-                    assert e.code == 0
+            try:
+                result = main()
+                assert result == 0 or result is None
+            except SystemExit as e:
+                assert e.code == 0
 
     def test_cli_ingest_feed_by_source_id_command(self):
         """Test CLI feed ingestion by source ID command."""
-        from app.ingestion.ingest_one import main
         import sys
+
+        from app.ingestion.ingest_one import main
 
         test_args = ["ingest_one.py", "--source-id", "1"]
 
-        with patch.object(sys, 'argv', test_args):
-            with patch('app.ingestion.ingest_one.get_source_by_id') as mock_get_source:
-                with patch('app.ingestion.feed_client.FeedClient.fetch_feed') as mock_fetch:
-                    # Mock source exists
-                    mock_source = Mock()
-                    mock_source.feed_url = "https://example.com/feed.xml"
-                    mock_get_source.return_value = mock_source
+        with (
+            patch.object(sys, "argv", test_args),
+            patch("app.ingestion.ingest_one.get_source_by_id") as mock_get_source,
+            patch("app.ingestion.feed_client.FeedClient.fetch_feed") as mock_fetch,
+        ):
+            # Mock source exists
+            mock_source = Mock()
+            mock_source.feed_url = "https://example.com/feed.xml"
+            mock_get_source.return_value = mock_source
 
-                    # Mock successful feed fetch
-                    mock_feed = Mock()
-                    mock_feed.entries = []
-                    mock_fetch.return_value = mock_feed
+            # Mock successful feed fetch
+            mock_feed = Mock()
+            mock_feed.entries = []
+            mock_fetch.return_value = mock_feed
 
-                    try:
-                        result = main()
-                        assert result == 0 or result is None
-                    except SystemExit as e:
-                        assert e.code == 0
+            try:
+                result = main()
+                assert result == 0 or result is None
+            except SystemExit as e:
+                assert e.code == 0
 
     def test_cli_argument_validation(self):
         """Test CLI argument validation."""
-        from app.ingestion.ingest_one import main
         import sys
+
+        from app.ingestion.ingest_one import main
 
         # No arguments should fail
         test_args = ["ingest_one.py"]
 
-        with patch.object(sys, 'argv', test_args):
+        with patch.object(sys, "argv", test_args):
             with pytest.raises(SystemExit) as exc_info:
                 main()
             # Should exit with non-zero code
@@ -257,13 +272,20 @@ class TestCLIIntegration:
 
     def test_cli_mutually_exclusive_arguments(self):
         """Test that mutually exclusive arguments are handled."""
-        from app.ingestion.ingest_one import main
         import sys
 
-        # Both --feed-url and --source-id should be invalid
-        test_args = ["ingest_one.py", "--feed-url", "https://example.com/feed.xml", "--source-id", "1"]
+        from app.ingestion.ingest_one import main
 
-        with patch.object(sys, 'argv', test_args):
+        # Both --feed-url and --source-id should be invalid
+        test_args = [
+            "ingest_one.py",
+            "--feed-url",
+            "https://example.com/feed.xml",
+            "--source-id",
+            "1",
+        ]
+
+        with patch.object(sys, "argv", test_args):
             with pytest.raises(SystemExit) as exc_info:
                 main()
             # Should exit with non-zero code
@@ -277,7 +299,7 @@ class TestErrorHandlingIntegration:
         """Test ingestion handles network errors gracefully."""
         from app.ingestion.ingest_one import ingest_feed_from_url
 
-        with patch('app.ingestion.feed_client.FeedClient.fetch_feed') as mock_fetch:
+        with patch("app.ingestion.feed_client.FeedClient.fetch_feed") as mock_fetch:
             mock_fetch.side_effect = Exception("Network error")
 
             result = ingest_feed_from_url("https://unreachable.example.com/feed.xml")
@@ -290,12 +312,14 @@ class TestErrorHandlingIntegration:
         from app.ingestion.ingest_one import ingest_feed_from_file
 
         # Create temporary malformed XML file
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.xml', delete=False) as f:
-            f.write("<?xml version='1.0'?><rss><channel><item><title>Unclosed")  # Malformed
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".xml", delete=False) as f:
+            f.write(
+                "<?xml version='1.0'?><rss><channel><item><title>Unclosed"
+            )  # Malformed
             malformed_file = f.name
 
         try:
-            with patch('app.ingestion.ingest_one.get_or_create_source') as mock_source:
+            with patch("app.ingestion.ingest_one.get_or_create_source") as mock_source:
                 mock_source.return_value = Mock(id=1, name="Test Source")
 
                 result = ingest_feed_from_file(malformed_file)
@@ -311,15 +335,17 @@ class TestErrorHandlingIntegration:
 
         feed_file = Path(__file__).parent / "fixtures" / "feeds" / "sample_feed.xml"
 
-        with patch('app.ingestion.ingest_one.get_or_create_source') as mock_source:
-            with patch('app.db.session.SessionLocal') as mock_session:
-                mock_source.return_value = Mock(id=1, name="Test Source")
-                mock_session.side_effect = Exception("Database connection error")
+        with (
+            patch("app.ingestion.ingest_one.get_or_create_source") as mock_source,
+            patch("app.db.session.SessionLocal") as mock_session,
+        ):
+            mock_source.return_value = Mock(id=1, name="Test Source")
+            mock_session.side_effect = Exception("Database connection error")
 
-                result = ingest_feed_from_file(str(feed_file))
+            result = ingest_feed_from_file(str(feed_file))
 
-                # Should handle gracefully
-                assert result["errors"] >= 1
+            # Should handle gracefully
+            assert result["errors"] >= 1
 
 
 class TestPerformanceIntegration:
@@ -328,15 +354,16 @@ class TestPerformanceIntegration:
     def test_ingestion_completes_within_time_limit(self):
         """Test that single feed ingestion completes within 5 seconds."""
         import time
+
         from app.ingestion.ingest_one import ingest_feed_from_file
 
         feed_file = Path(__file__).parent / "fixtures" / "feeds" / "sample_feed.xml"
 
-        with patch('app.ingestion.ingest_one.get_or_create_source') as mock_source:
+        with patch("app.ingestion.ingest_one.get_or_create_source") as mock_source:
             mock_source.return_value = Mock(id=1, name="Test Source")
 
             start_time = time.time()
-            result = ingest_feed_from_file(str(feed_file))
+            ingest_feed_from_file(str(feed_file))
             end_time = time.time()
 
             duration = end_time - start_time
@@ -368,12 +395,12 @@ class TestPerformanceIntegration:
         </rss>
         """
 
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.xml', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".xml", delete=False) as f:
             f.write(large_feed_content)
             large_feed_file = f.name
 
         try:
-            with patch('app.ingestion.ingest_one.get_or_create_source') as mock_source:
+            with patch("app.ingestion.ingest_one.get_or_create_source") as mock_source:
                 mock_source.return_value = Mock(id=1, name="Test Source")
 
                 result = ingest_feed_from_file(large_feed_file)

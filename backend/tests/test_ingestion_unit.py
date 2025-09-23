@@ -1,10 +1,10 @@
 """Unit tests for RSS ingestion functionality."""
 
-import pytest
-from unittest.mock import Mock, patch
 from datetime import datetime
-import json
 from pathlib import Path
+from unittest.mock import Mock, patch
+
+import pytest
 
 # These tests will initially fail - that's the point of TDD!
 
@@ -49,7 +49,7 @@ class TestSourceSeeding:
             {
                 "name": "Minimal Source",
                 "url": "http://minimal.example.com",
-                "feed_url": "http://minimal.example.com/feed.xml"
+                "feed_url": "http://minimal.example.com/feed.xml",
             }
         ]
 
@@ -67,10 +67,10 @@ class TestSourceSeeding:
                 "name": "Test Source v1",
                 "url": "http://test.example.com",
                 "feed_url": "http://test.example.com/feed.xml",
-                "credibility_score": 0.5
+                "credibility_score": 0.5,
             }
         ]
-        result1 = seed_sources(sources)
+        seed_sources(sources)
 
         # Update with same feed_url but different name
         sources[0]["name"] = "Test Source v2"
@@ -85,15 +85,23 @@ class TestSourceSeeding:
         """Test graceful handling of database errors."""
         from app.ingestion.seeder import seed_sources
 
-        with patch('app.models.source.Source') as mock_source:
+        with patch("app.models.source.Source") as mock_source:
             mock_source.side_effect = Exception("Database error")
 
             with pytest.raises(Exception, match="Database error"):
-                seed_sources([{"name": "Test", "url": "http://test.com", "feed_url": "http://test.com/feed"}])
+                seed_sources(
+                    [
+                        {
+                            "name": "Test",
+                            "url": "http://test.com",
+                            "feed_url": "http://test.com/feed",
+                        }
+                    ]
+                )
 
 
 class TestFeedClient:
-    """Test feed client functionality (will be implemented after security tests pass)."""
+    """Test feed client functionality."""
 
     def test_fetch_feed_returns_parsed_content(self):
         """Test that fetch_feed returns feedparser-compatible content."""
@@ -101,7 +109,7 @@ class TestFeedClient:
 
         client = FeedClient()
 
-        with patch('httpx.get') as mock_get:
+        with patch("httpx.get") as mock_get:
             # Mock RSS content
             mock_response = Mock()
             mock_response.content = b"""<?xml version="1.0"?>
@@ -115,12 +123,12 @@ class TestFeedClient:
                     </item>
                 </channel>
             </rss>"""
-            mock_response.headers = {'content-length': '200'}
+            mock_response.headers = {"content-length": "200"}
             mock_get.return_value = mock_response
 
             feed = client.fetch_feed("https://example.com/feed.xml")
 
-            assert hasattr(feed, 'entries')
+            assert hasattr(feed, "entries")
             assert len(feed.entries) > 0
             assert feed.entries[0].title == "Test Article"
 
@@ -130,10 +138,10 @@ class TestFeedClient:
 
         client = FeedClient()
 
-        with patch('httpx.get') as mock_get:
+        with patch("httpx.get") as mock_get:
             mock_response = Mock()
             mock_response.content = b"<rss></rss>"
-            mock_response.headers = {'content-length': '20'}
+            mock_response.headers = {"content-length": "20"}
             mock_get.return_value = mock_response
 
             client.fetch_feed("https://example.com/feed.xml")
@@ -141,9 +149,9 @@ class TestFeedClient:
             # Verify httpx.get was called with proper headers
             mock_get.assert_called_once()
             call_kwargs = mock_get.call_args[1]
-            assert 'headers' in call_kwargs
-            assert 'User-Agent' in call_kwargs['headers']
-            assert 'YourMorningBriefBot' in call_kwargs['headers']['User-Agent']
+            assert "headers" in call_kwargs
+            assert "User-Agent" in call_kwargs["headers"]
+            assert "YourMorningBriefBot" in call_kwargs["headers"]["User-Agent"]
 
     def test_fetch_feed_respects_timeout(self):
         """Test that requests respect configured timeout."""
@@ -151,10 +159,10 @@ class TestFeedClient:
 
         client = FeedClient()
 
-        with patch('httpx.get') as mock_get:
+        with patch("httpx.get") as mock_get:
             mock_response = Mock()
             mock_response.content = b"<rss></rss>"
-            mock_response.headers = {'content-length': '20'}
+            mock_response.headers = {"content-length": "20"}
             mock_get.return_value = mock_response
 
             client.fetch_feed("https://example.com/feed.xml")
@@ -162,8 +170,8 @@ class TestFeedClient:
             # Verify timeout was set
             mock_get.assert_called_once()
             call_kwargs = mock_get.call_args[1]
-            assert 'timeout' in call_kwargs
-            assert call_kwargs['timeout'] > 0
+            assert "timeout" in call_kwargs
+            assert call_kwargs["timeout"] > 0
 
 
 class TestMapper:
@@ -260,16 +268,22 @@ class TestMapper:
 
         # Should be SHA256 hex (64 characters)
         assert len(content_hash) == 64
-        assert all(c in '0123456789abcdef' for c in content_hash.lower())
+        assert all(c in "0123456789abcdef" for c in content_hash.lower())
 
     def test_content_hash_normalization(self):
         """Test content hash normalization for stability."""
         from app.ingestion.mapper import generate_content_hash
 
         # Different cases/whitespace should produce same hash
-        hash1 = generate_content_hash("Test Article", "https://example.com/article", "2024-09-23T09:00:00Z")
-        hash2 = generate_content_hash("  test article  ", "https://example.com/article", "2024-09-23T09:00:00Z")
-        hash3 = generate_content_hash("TEST ARTICLE", "https://example.com/article", "2024-09-23T09:00:00Z")
+        hash1 = generate_content_hash(
+            "Test Article", "https://example.com/article", "2024-09-23T09:00:00Z"
+        )
+        hash2 = generate_content_hash(
+            "  test article  ", "https://example.com/article", "2024-09-23T09:00:00Z"
+        )
+        hash3 = generate_content_hash(
+            "TEST ARTICLE", "https://example.com/article", "2024-09-23T09:00:00Z"
+        )
 
         assert hash1 == hash2 == hash3
 
@@ -282,16 +296,16 @@ class TestConfiguration:
         from app.core.config import settings
 
         required_settings = [
-            'INGESTION_USER_AGENT',
-            'INGESTION_TIMEOUT_SEC',
-            'INGESTION_MAX_RETRIES',
-            'RETRY_BACKOFF_BASE_SEC',
-            'RETRY_BACKOFF_JITTER_SEC',
-            'INGESTION_TOTAL_RETRY_CAP_SEC',
-            'SUMMARY_MAX_LEN',
-            'MAX_RESPONSE_SIZE_MB',
-            'BLOCKED_NETWORKS',
-            'ALLOWED_URL_SCHEMES',
+            "INGESTION_USER_AGENT",
+            "INGESTION_TIMEOUT_SEC",
+            "INGESTION_MAX_RETRIES",
+            "RETRY_BACKOFF_BASE_SEC",
+            "RETRY_BACKOFF_JITTER_SEC",
+            "INGESTION_TOTAL_RETRY_CAP_SEC",
+            "SUMMARY_MAX_LEN",
+            "MAX_RESPONSE_SIZE_MB",
+            "BLOCKED_NETWORKS",
+            "ALLOWED_URL_SCHEMES",
         ]
 
         for setting in required_settings:
@@ -301,12 +315,12 @@ class TestConfiguration:
         """Test that config has sensible defaults."""
         from app.core.config import settings
 
-        assert 'YourMorningBriefBot' in settings.INGESTION_USER_AGENT
+        assert "YourMorningBriefBot" in settings.INGESTION_USER_AGENT
         assert settings.INGESTION_TIMEOUT_SEC > 0
         assert settings.MAX_RESPONSE_SIZE_MB > 0
         assert len(settings.BLOCKED_NETWORKS) > 0
-        assert 'http' in settings.ALLOWED_URL_SCHEMES
-        assert 'https' in settings.ALLOWED_URL_SCHEMES
+        assert "http" in settings.ALLOWED_URL_SCHEMES
+        assert "https" in settings.ALLOWED_URL_SCHEMES
 
 
 class TestRetryLogic:

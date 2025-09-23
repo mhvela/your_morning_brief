@@ -1,4 +1,4 @@
-.PHONY: setup fmt lint test up down backend frontend
+.PHONY: setup fmt lint test up down backend frontend milestone-checklist
 
 PYTHON := python3.11
 PIP := pip
@@ -77,3 +77,30 @@ ingest-one:
 	@echo "Ingesting single feed..."
 	@if [ -z "$(FEED_URL)" ]; then echo "Provide FEED_URL=..."; exit 1; fi
 	@cd backend && conda run -n ymb-py311 python -m app.ingestion.ingest_one --feed-url "$(FEED_URL)"
+
+# Milestone completion process enforcement
+milestone-checklist:
+	@echo "🚨 MILESTONE COMPLETION CHECKLIST 🚨"
+	@echo ""
+	@echo "Before marking any milestone as COMPLETED, verify:"
+	@echo ""
+	@echo "✅ Technical Implementation:"
+	@echo "   - All requirements implemented and functional"
+	@echo "   - All acceptance criteria met"
+	@echo "   - Code quality: make lint (passes)"
+	@echo "   - All tests: make test (passes)"
+	@echo ""
+	@echo "✅ Documentation Updates (MANDATORY):"
+	@echo "   - MVP_imp_plan.md: Add ✅ to milestone title"
+	@echo "   - MVP_imp_plan.md: Add 'Status: **COMPLETED**'"
+	@echo "   - MVP_imp_plan.md: Add spec file reference"
+	@echo "   - MVP_imp_plan.md: Update checklist [ ] to [x]"
+	@echo "   - CLAUDE.md: Update 'Current Status' section"
+	@echo ""
+	@echo "✅ Commit and Push:"
+	@echo "   - Comprehensive commit message"
+	@echo "   - Push to GitHub"
+	@echo ""
+	@echo "📋 TodoWrite Rule: Include ALL above items in milestone todos"
+	@echo ""
+	@echo "See CLAUDE.md 'MANDATORY Milestone Completion Checklist' for details"

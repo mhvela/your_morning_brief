@@ -5,6 +5,10 @@ from pathlib import Path
 from unittest.mock import Mock, patch
 
 import pytest
+from sqlalchemy.orm import Session
+
+# Load fixtures from test_database without importing names into module scope
+pytest_plugins = ["tests.test_database"]
 
 # These tests will initially fail - that's the point of TDD!
 
@@ -12,13 +16,18 @@ import pytest
 class TestSourceSeeding:
     """Test source seeding functionality."""
 
-    def test_seed_sources_from_json_file(self):
+    def test_seed_sources_from_json_file(self, db_session: Session):
         """Test seeding sources from JSON file."""
         from app.ingestion.seeder import seed_sources_from_file
 
         # Use our test fixture
         test_file = Path(__file__).parent / "fixtures" / "sources.test.json"
-        result = seed_sources_from_file(str(test_file))
+
+        # Mock SessionLocal to return our test session
+        with patch("app.ingestion.seeder.SessionLocal") as mock_session_local:
+            mock_session_local.return_value.__enter__.return_value = db_session
+            mock_session_local.return_value.__exit__.return_value = None
+            result = seed_sources_from_file(str(test_file))
 
         assert "created" in result
         assert "updated" in result
@@ -41,7 +50,7 @@ class TestSourceSeeding:
         with pytest.raises(ValueError, match="Invalid source data"):
             seed_sources(invalid_sources)
 
-    def test_seed_sources_validates_optional_fields(self):
+    def test_seed_sources_validates_optional_fields(self, db_session: Session):
         """Test that optional fields have proper defaults."""
         from app.ingestion.seeder import seed_sources
 
@@ -53,11 +62,16 @@ class TestSourceSeeding:
             }
         ]
 
-        result = seed_sources(minimal_source)
+        # Mock SessionLocal to return our test session
+        with patch("app.ingestion.seeder.SessionLocal") as mock_session_local:
+            mock_session_local.return_value.__enter__.return_value = db_session
+            mock_session_local.return_value.__exit__.return_value = None
+            result = seed_sources(minimal_source)
+
         # Should succeed and apply defaults
         assert result["created"] == 1 or result["updated"] == 1
 
-    def test_seed_sources_upserts_by_feed_url(self):
+    def test_seed_sources_upserts_by_feed_url(self, db_session: Session):
         """Test that sources are upserted by feed_url."""
         from app.ingestion.seeder import seed_sources
 
@@ -70,23 +84,33 @@ class TestSourceSeeding:
                 "credibility_score": 0.5,
             }
         ]
-        seed_sources(sources)
 
-        # Update with same feed_url but different name
-        sources[0]["name"] = "Test Source v2"
-        sources[0]["credibility_score"] = 0.8
-        result2 = seed_sources(sources)
+        # Mock SessionLocal to return our test session
+        with patch("app.ingestion.seeder.SessionLocal") as mock_session_local:
+            mock_session_local.return_value.__enter__.return_value = db_session
+            mock_session_local.return_value.__exit__.return_value = None
+            seed_sources(sources)
+
+            # Update with same feed_url but different name
+            sources[0]["name"] = "Test Source v2"
+            sources[0]["credibility_score"] = 0.8
+            result2 = seed_sources(sources)
 
         # Should update existing record
         assert result2["created"] == 0
         assert result2["updated"] == 1
 
-    def test_seed_sources_handles_database_errors(self):
+    def test_seed_sources_handles_database_errors(self, db_session: Session):
         """Test graceful handling of database errors."""
         from app.ingestion.seeder import seed_sources
 
-        with patch("app.models.source.Source") as mock_source:
-            mock_source.side_effect = Exception("Database error")
+        # Mock the database session to raise an error on add
+        with patch("app.ingestion.seeder.SessionLocal") as mock_session_local:
+            mock_session_local.return_value.__enter__.return_value = db_session
+            mock_session_local.return_value.__exit__.return_value = None
+
+            # Mock db.add to raise an error before logging
+            db_session.add = Mock(side_effect=Exception("Database error"))
 
             with pytest.raises(Exception, match="Database error"):
                 seed_sources(
@@ -109,7 +133,7 @@ class TestFeedClient:
 
         client = FeedClient()
 
-        with patch("httpx.get") as mock_get:
+        with patch("httpx.Client") as mock_client:
             # Mock RSS content
             mock_response = Mock()
             mock_response.content = b"""<?xml version="1.0"?>
@@ -124,7 +148,14 @@ class TestFeedClient:
                 </channel>
             </rss>"""
             mock_response.headers = {"content-length": "200"}
-            mock_get.return_value = mock_response
+            mock_response.status_code = 200
+            mock_response.raise_for_status = Mock()  # Don't raise for 200
+
+            # Mock the context manager and the get method
+            mock_client_instance = Mock()
+            mock_client_instance.get.return_value = mock_response
+            mock_client.return_value.__enter__.return_value = mock_client_instance
+            mock_client.return_value.__exit__.return_value = None
 
             feed = client.fetch_feed("https://example.com/feed.xml")
 
@@ -138,17 +169,24 @@ class TestFeedClient:
 
         client = FeedClient()
 
-        with patch("httpx.get") as mock_get:
+        with patch("httpx.Client") as mock_client:
             mock_response = Mock()
             mock_response.content = b"<rss></rss>"
             mock_response.headers = {"content-length": "20"}
-            mock_get.return_value = mock_response
+            mock_response.status_code = 200
+            mock_response.raise_for_status = Mock()
+
+            # Mock the context manager and the get method
+            mock_client_instance = Mock()
+            mock_client_instance.get.return_value = mock_response
+            mock_client.return_value.__enter__.return_value = mock_client_instance
+            mock_client.return_value.__exit__.return_value = None
 
             client.fetch_feed("https://example.com/feed.xml")
 
-            # Verify httpx.get was called with proper headers
-            mock_get.assert_called_once()
-            call_kwargs = mock_get.call_args[1]
+            # Verify get was called with proper headers
+            mock_client_instance.get.assert_called_once()
+            call_kwargs = mock_client_instance.get.call_args[1]
             assert "headers" in call_kwargs
             assert "User-Agent" in call_kwargs["headers"]
             assert "YourMorningBriefBot" in call_kwargs["headers"]["User-Agent"]
@@ -159,17 +197,24 @@ class TestFeedClient:
 
         client = FeedClient()
 
-        with patch("httpx.get") as mock_get:
+        with patch("httpx.Client") as mock_client:
             mock_response = Mock()
             mock_response.content = b"<rss></rss>"
             mock_response.headers = {"content-length": "20"}
-            mock_get.return_value = mock_response
+            mock_response.status_code = 200
+            mock_response.raise_for_status = Mock()
+
+            # Mock the context manager and the get method
+            mock_client_instance = Mock()
+            mock_client_instance.get.return_value = mock_response
+            mock_client.return_value.__enter__.return_value = mock_client_instance
+            mock_client.return_value.__exit__.return_value = None
 
             client.fetch_feed("https://example.com/feed.xml")
 
-            # Verify timeout was set
-            mock_get.assert_called_once()
-            call_kwargs = mock_get.call_args[1]
+            # Verify timeout was set on the client constructor
+            mock_client.assert_called_once()
+            call_kwargs = mock_client.call_args[1]
             assert "timeout" in call_kwargs
             assert call_kwargs["timeout"] > 0
 
@@ -207,14 +252,19 @@ class TestMapper:
         from app.ingestion.mapper import ArticleMapper
 
         # Minimal mock entry (only required fields)
-        mock_entry = Mock()
-        mock_entry.title = "Minimal Article"
-        mock_entry.link = "https://example.com/minimal"
-        # Missing: summary, published, author, tags
-        del mock_entry.summary
-        del mock_entry.published
-        del mock_entry.author
-        del mock_entry.tags
+        # Create a Mock that raises AttributeError for missing attributes
+        class MinimalEntry:
+            def __init__(self):
+                self.title = "Minimal Article"
+                self.link = "https://example.com/minimal"
+
+            def __getattr__(self, name):
+                # For any attribute not explicitly set, raise AttributeError
+                raise AttributeError(
+                    f"'{self.__class__.__name__}' object has no attribute '{name}'"
+                )
+
+        mock_entry = MinimalEntry()
 
         mapper = ArticleMapper()
         article_data = mapper.map_entry_to_article(mock_entry, source_id=1)
@@ -296,16 +346,16 @@ class TestConfiguration:
         from app.core.config import settings
 
         required_settings = [
-            "INGESTION_USER_AGENT",
-            "INGESTION_TIMEOUT_SEC",
-            "INGESTION_MAX_RETRIES",
-            "RETRY_BACKOFF_BASE_SEC",
-            "RETRY_BACKOFF_JITTER_SEC",
-            "INGESTION_TOTAL_RETRY_CAP_SEC",
-            "SUMMARY_MAX_LEN",
-            "MAX_RESPONSE_SIZE_MB",
-            "BLOCKED_NETWORKS",
-            "ALLOWED_URL_SCHEMES",
+            "ingestion_user_agent",
+            "ingestion_timeout_sec",
+            "ingestion_max_retries",
+            "retry_backoff_base_sec",
+            "retry_backoff_jitter_sec",
+            "ingestion_total_retry_cap_sec",
+            "summary_max_len",
+            "max_response_size_mb",
+            "blocked_networks",
+            "allowed_url_schemes",
         ]
 
         for setting in required_settings:
@@ -315,12 +365,12 @@ class TestConfiguration:
         """Test that config has sensible defaults."""
         from app.core.config import settings
 
-        assert "YourMorningBriefBot" in settings.INGESTION_USER_AGENT
-        assert settings.INGESTION_TIMEOUT_SEC > 0
-        assert settings.MAX_RESPONSE_SIZE_MB > 0
-        assert len(settings.BLOCKED_NETWORKS) > 0
-        assert "http" in settings.ALLOWED_URL_SCHEMES
-        assert "https" in settings.ALLOWED_URL_SCHEMES
+        assert "YourMorningBriefBot" in settings.ingestion_user_agent
+        assert settings.ingestion_timeout_sec > 0
+        assert settings.max_response_size_mb > 0
+        assert len(settings.blocked_networks) > 0
+        assert "http" in settings.allowed_url_schemes
+        assert "https" in settings.allowed_url_schemes
 
 
 class TestRetryLogic:

@@ -33,6 +33,9 @@ make lint
 # Run all tests
 make test
 
+# Type check (prevents mypy failures)
+make typecheck
+
 # Check dependency sync (prevents CI failures)
 make check-deps
 
@@ -73,7 +76,7 @@ cd frontend && npx tsc --noEmit             # Type checking
 **Development Workflow:**
 
 - Uses Conventional Commits (feat, fix, chore, docs, refactor, test, ci)
-- Pre-commit hooks enforce code quality (ruff, black, eslint, prettier)
+- Pre-commit hooks enforce code quality (ruff, black, mypy, eslint, prettier, dependency sync)
 - CI pipeline runs on GitHub Actions with lint, type-check, and test jobs
 - All quality gates must pass before merge
 
@@ -137,6 +140,80 @@ make check-deps
 - `make check-deps` - Validate dependency sync
 - Pre-commit hooks run this automatically
 - Never commit with mismatched dependencies
+
+## Type Checking Guidelines
+
+**⚠️ MANDATORY: All Python code must pass mypy strict mode**
+
+### **Automatic Prevention**
+
+- **Pre-commit hooks** run `mypy app/` automatically before every commit
+- **Commits are blocked** if type checking fails
+- **GitHub Actions** runs the same mypy checks in CI
+
+### **Writing Type-Safe Code**
+
+**1. Always Add Type Hints to Functions**
+
+```python
+# ✅ Good: Complete type annotations
+def process_articles(articles: list[Article], source_id: int) -> dict[str, int]:
+    result: dict[str, int] = {"processed": 0, "errors": 0}
+    return result
+
+# ❌ Bad: Missing type annotations
+def process_articles(articles, source_id):
+    result = {"processed": 0, "errors": 0}
+    return result
+```
+
+**2. Handle Optional Values Explicitly**
+
+```python
+# ✅ Good: Proper None handling
+existing_source.credibility_score = validated_source.credibility_score or 0.5
+existing_source.is_active = (
+    validated_source.is_active if validated_source.is_active is not None else True
+)
+
+# ❌ Bad: Direct assignment of Optional to non-Optional
+existing_source.credibility_score = validated_source.credibility_score  # May be None
+```
+
+**3. Use Explicit Type Annotations for Complex Returns**
+
+```python
+# ✅ Good: Explicit type annotation
+cleaned: str = bleach.clean(content, tags=[], strip=True)
+parsed_date: datetime = date_parser.parse(date_str)
+
+# ❌ Bad: Relies on Any inference
+cleaned = bleach.clean(content, tags=[], strip=True)  # Returns Any
+```
+
+**4. Import Required Types**
+
+```python
+from typing import Any
+from sqlalchemy.orm import Session
+from app.models.source import Source
+```
+
+### **Commands for Type Checking**
+
+- `make typecheck` - Run mypy locally before committing
+- Pre-commit hooks run automatically on `git commit`
+- CI runs `mypy app/` on all Python files
+
+### **Common MyPy Errors & Solutions**
+
+| Error                                          | Solution                                       |
+| ---------------------------------------------- | ---------------------------------------------- |
+| `Function is missing a return type annotation` | Add `-> ReturnType` or `-> None`               |
+| `Incompatible types in assignment`             | Check Optional types, use proper None handling |
+| `Call to untyped function`                     | Add type hints to function definition          |
+| `Need type annotation for variable`            | Add explicit type: `var: Type = value`         |
+| `Returning Any from function`                  | Add explicit type annotation for clarity       |
 
 ## Product Context
 
@@ -265,7 +342,8 @@ Use this checklist for EVERY milestone completion. Always create a TodoWrite lis
 
 - [ ] All technical requirements implemented and functional
 - [ ] All acceptance criteria from milestone spec met
-- [ ] Code quality checks pass: `make lint` (ruff, black, mypy, eslint)
+- [ ] Code quality checks pass: `make lint` (ruff, black, eslint)
+- [ ] Type checking passes: `make typecheck` (mypy strict mode)
 - [ ] All tests pass: `make test` (backend pytest, frontend vitest)
 - [ ] Security requirements validated (if applicable)
 

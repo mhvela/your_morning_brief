@@ -1,4 +1,4 @@
-.PHONY: setup fmt lint test up down backend frontend milestone-checklist check-deps
+.PHONY: setup fmt lint test up down backend frontend milestone-checklist check-deps typecheck
 
 PYTHON := python3.11
 PIP := pip
@@ -22,8 +22,11 @@ lint:
 	@echo "Linting..."
 	@ruff check backend
 	@black --check backend
-	@mypy backend
 	@cd frontend && (npx eslint . --max-warnings=0)
+
+typecheck:
+	@echo "Type checking..."
+	@cd backend && conda run -n ymb-py311 mypy app/
 
 test:
 	@echo "Running tests..."
@@ -88,6 +91,7 @@ milestone-checklist:
 	@echo "   - All requirements implemented and functional"
 	@echo "   - All acceptance criteria met"
 	@echo "   - Code quality: make lint (passes)"
+	@echo "   - Type checking: make typecheck (passes)"
 	@echo "   - All tests: make test (passes)"
 	@echo ""
 	@echo "✅ Documentation Updates (MANDATORY):"

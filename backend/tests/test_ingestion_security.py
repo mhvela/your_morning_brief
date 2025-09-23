@@ -200,12 +200,15 @@ class TestInputValidation:
         client = FeedClient()
 
         # Mock a response that's too large
-        with patch("httpx.get") as mock_get:
+        with patch("httpx.Client") as mock_client_class:
             # Simulate 11MB response (over 10MB limit)
             mock_response = Mock()
             mock_response.content = b"x" * (11 * 1024 * 1024)
             mock_response.headers = {"content-length": str(11 * 1024 * 1024)}
-            mock_get.return_value = mock_response
+
+            mock_client = Mock()
+            mock_client.get.return_value = mock_response
+            mock_client_class.return_value.__enter__.return_value = mock_client
 
             with pytest.raises(ValueError, match="Response too large"):
                 client.fetch_feed("https://example.com/feed.xml")

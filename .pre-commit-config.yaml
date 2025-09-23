@@ -32,3 +32,9 @@ repos:
         entry: python scripts/check_dependency_sync.py
         files: ^backend/(requirements\.txt|pyproject\.toml)$
         pass_filenames: false
+      - id: mypy-backend
+        name: mypy (backend)
+        language: system
+        entry: bash -lc 'cd backend && python -m mypy app/'
+        files: ^backend/app/.*\.py$
+        pass_filenames: false

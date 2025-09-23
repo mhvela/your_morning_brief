@@ -81,7 +81,7 @@ def seed_sources(sources_data: list[dict[str, Any]]) -> dict[str, int]:
                         "Updated source",
                         extra={
                             "source_id": existing_source.id,
-                            "name": validated_source.name,
+                            "source_name": validated_source.name,
                             "feed_url": validated_source.feed_url,
                         },
                     )
@@ -99,7 +99,7 @@ def seed_sources(sources_data: list[dict[str, Any]]) -> dict[str, int]:
                     logger.info(
                         "Created new source",
                         extra={
-                            "name": validated_source.name,
+                            "source_name": validated_source.name,
                             "feed_url": validated_source.feed_url,
                         },
                     )
@@ -123,9 +123,9 @@ def seed_sources(sources_data: list[dict[str, Any]]) -> dict[str, int]:
     logger.info(
         "Source seeding completed",
         extra={
-            "created": result["created"],
-            "updated": result["updated"],
-            "skipped": result["skipped"],
+            "num_created": result["created"],
+            "num_updated": result["updated"],
+            "num_skipped": result["skipped"],
         },
     )
 

@@ -1,0 +1,23 @@
+[
+  {
+    "name": "TechCrunch",
+    "url": "https://techcrunch.com",
+    "feed_url": "https://techcrunch.com/feed/",
+    "credibility_score": 0.7,
+    "is_active": true
+  },
+  {
+    "name": "The Verge",
+    "url": "https://www.theverge.com",
+    "feed_url": "https://www.theverge.com/rss/index.xml",
+    "credibility_score": 0.7,
+    "is_active": true
+  },
+  {
+    "name": "BBC Technology",
+    "url": "https://www.bbc.com/news/technology",
+    "feed_url": "http://feeds.bbci.co.uk/news/technology/rss.xml",
+    "credibility_score": 0.7,
+    "is_active": true
+  }
+]

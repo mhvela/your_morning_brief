@@ -42,6 +42,27 @@ class Settings(BaseSettings):
     # Test database (use SQLite file by default for CI/local tests)
     test_database_url: str | None = "sqlite:///./test.db"
 
+    # RSS Ingestion settings
+    ingestion_user_agent: str = "YourMorningBriefBot/0.1 (+contact: dev@local)"
+    ingestion_timeout_sec: int = 10
+    ingestion_max_retries: int = 2
+    retry_backoff_base_sec: float = 0.5
+    retry_backoff_jitter_sec: float = 0.3
+    ingestion_total_retry_cap_sec: float = 8.0
+    summary_max_len: int = 4000
+    max_response_size_mb: int = 10
+    blocked_networks: list[str] = [
+        "10.0.0.0/8",      # Private Class A
+        "172.16.0.0/12",   # Private Class B
+        "192.168.0.0/16",  # Private Class C
+        "127.0.0.0/8",     # Loopback
+        "169.254.0.0/16",  # Link-local
+        "::1/128",         # IPv6 loopback
+        "fc00::/7",        # IPv6 unique local
+        "fe80::/10",       # IPv6 link-local
+    ]
+    allowed_url_schemes: list[str] = ["http", "https"]
+
     # Build info (populated at runtime)
     build_date: str = ""
     commit_hash: str = ""

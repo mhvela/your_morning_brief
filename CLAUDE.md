@@ -323,3 +323,4 @@ DATABASE_CONNECTION_TIMEOUT=30
 - Automated security scanning in CI/CD pipeline
 - Manual security testing before production deployment
 - Regular security audits and penetration testing
+- Always plan implementation of feature specs with a TDD approach.

@@ -3,9 +3,12 @@
 import argparse
 import sys
 import time
+from datetime import UTC, datetime
 from pathlib import Path
+from typing import Any
 
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm import Session
 
 from app.core.logging import get_logger
 from app.db.session import SessionLocal
@@ -17,11 +20,12 @@ from app.ingestion.seeder import (
     seed_sources_from_file,
 )
 from app.models.article import Article
+from app.models.source import Source
 
 logger = get_logger(__name__)
 
 
-def _get_source_for_ingestion(feed_url: str, source_id: int | None):
+def _get_source_for_ingestion(feed_url: str, source_id: int | None) -> Source:
     """Get or create source for ingestion."""
     if source_id:
         with SessionLocal() as db:
@@ -33,7 +37,9 @@ def _get_source_for_ingestion(feed_url: str, source_id: int | None):
     return source
 
 
-def _process_feed_entry(entry, source_id: int, mapper: ArticleMapper, db) -> str:
+def _process_feed_entry(
+    entry: Any, source_id: int, mapper: ArticleMapper, db: Session
+) -> str:
     """Process a single feed entry and return result status."""
     # Map entry to article data
     article_data = mapper.map_entry_to_article(entry, source_id)
@@ -71,12 +77,14 @@ def _process_feed_entry(entry, source_id: int, mapper: ArticleMapper, db) -> str
     return "inserted"
 
 
-def _update_source_after_ingestion(source, success: bool, error: str | None):
+def _update_source_after_ingestion(
+    source: Source, success: bool, error: str | None
+) -> None:
     """Update source metadata after ingestion."""
     try:
         with SessionLocal() as db:
             if success:
-                source.last_fetched_at = time.time()
+                source.last_fetched_at = datetime.now(UTC)
                 source.error_count = 0
                 source.last_error = None
             else:
@@ -116,7 +124,7 @@ def ingest_feed_from_url(feed_url: str, source_id: int | None = None) -> dict[st
         )
 
         # Fetch and parse feed
-        client = FeedClient()
+        client: FeedClient = FeedClient()
         feed = client.fetch_feed(feed_url)
 
         if not hasattr(feed, "entries") or not feed.entries:
@@ -342,7 +350,7 @@ Examples:
     return parser
 
 
-def _handle_seed_sources(args) -> int:
+def _handle_seed_sources(args: argparse.Namespace) -> int:
     """Handle source seeding operation."""
     if not Path(args.seed_sources).exists():
         logger.error(f"Source file not found: {args.seed_sources}")
@@ -356,7 +364,7 @@ def _handle_seed_sources(args) -> int:
     return 0
 
 
-def _handle_feed_url(args) -> int:
+def _handle_feed_url(args: argparse.Namespace) -> int:
     """Handle feed URL ingestion."""
     result = ingest_feed_from_url(args.feed_url)
     print(
@@ -367,7 +375,7 @@ def _handle_feed_url(args) -> int:
     return 0
 
 
-def _handle_source_id(args) -> int:
+def _handle_source_id(args: argparse.Namespace) -> int:
     """Handle source ID ingestion."""
     with SessionLocal() as db:
         source = get_source_by_id(args.source_id, db)
@@ -384,7 +392,7 @@ def _handle_source_id(args) -> int:
     return 0
 
 
-def _handle_file_ingestion(args) -> int:
+def _handle_file_ingestion(args: argparse.Namespace) -> int:
     """Handle file ingestion."""
     if not Path(args.file).exists():
         logger.error(f"Feed file not found: {args.file}")

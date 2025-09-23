@@ -33,7 +33,7 @@ def sanitize_html(content: str) -> str:
 
     # First pass: Use bleach with empty allowlist to remove ALL HTML tags
     # strip=True removes tags and keeps text content
-    cleaned = bleach.clean(content, tags=[], strip=True)
+    cleaned: str = bleach.clean(content, tags=[], strip=True)
 
     # Second pass: Remove any script content and suspicious patterns
     # Remove anything that looks like JavaScript
@@ -140,7 +140,7 @@ def parse_published_date(date_str: str | None) -> datetime:
 
     try:
         # Parse with dateutil which handles many formats
-        parsed_date = date_parser.parse(date_str)
+        parsed_date: datetime = date_parser.parse(date_str)
 
         # Ensure timezone awareness
         if parsed_date.tzinfo is None:

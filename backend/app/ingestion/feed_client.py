@@ -18,7 +18,7 @@ logger = get_logger(__name__)
 class FeedClient:
     """HTTP client for fetching RSS feeds with security controls."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize feed client with security settings."""
         self.user_agent = settings.ingestion_user_agent
         self.timeout = settings.ingestion_timeout_sec
@@ -193,8 +193,8 @@ class FeedClient:
         self.validate_url(url)
 
         # Attempt fetch with retries
-        last_exception = None
-        total_wait_time = 0
+        last_exception: Exception | None = None
+        total_wait_time = 0.0
 
         for attempt in range(self.max_retries + 1):  # +1 for initial attempt
             try:
@@ -291,13 +291,13 @@ def calculate_backoff_delay(
     exponential_delay = base_delay * (2**attempt)
 
     # Add random jitter
-    jitter_amount = random.uniform(0, jitter)
-    total_delay = exponential_delay + jitter_amount
+    jitter_amount: float = random.uniform(0, jitter)
+    total_delay: float = exponential_delay + jitter_amount
 
     # Cap at remaining time
-    capped_delay = min(total_delay, max_remaining_time)
+    capped_delay: float = min(total_delay, max_remaining_time)
 
-    return max(0, capped_delay)
+    return max(0.0, capped_delay)
 
 
 def validate_feed_content(feed: Any) -> dict[str, Any]:
@@ -310,7 +310,7 @@ def validate_feed_content(feed: Any) -> dict[str, Any]:
     Returns:
         Dictionary with feed metadata and validation results
     """
-    metadata = {
+    metadata: dict[str, Any] = {
         "title": getattr(feed.feed, "title", "Unknown Feed"),
         "link": getattr(feed.feed, "link", ""),
         "description": getattr(feed.feed, "description", ""),
@@ -319,13 +319,16 @@ def validate_feed_content(feed: Any) -> dict[str, Any]:
     }
 
     # Check for parsing errors
+    parsing_errors = metadata["parsing_errors"]
+    assert isinstance(parsing_errors, list)  # Type narrowing for mypy
+
     if hasattr(feed, "bozo") and feed.bozo and hasattr(feed, "bozo_exception"):
-        metadata["parsing_errors"].append(str(feed.bozo_exception))
+        parsing_errors.append(str(feed.bozo_exception))
 
     # Validate entries structure
     if not hasattr(feed, "entries"):
-        metadata["parsing_errors"].append("Feed missing entries")
+        parsing_errors.append("Feed missing entries")
     elif not isinstance(feed.entries, list):
-        metadata["parsing_errors"].append("Feed entries is not a list")
+        parsing_errors.append("Feed entries is not a list")
 
     return metadata

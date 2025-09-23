@@ -69,9 +69,13 @@ def seed_sources(sources_data: list[dict[str, Any]]) -> dict[str, int]:
                     existing_source.name = validated_source.name
                     existing_source.url = validated_source.url
                     existing_source.credibility_score = (
-                        validated_source.credibility_score
+                        validated_source.credibility_score or 0.5
                     )
-                    existing_source.is_active = validated_source.is_active
+                    existing_source.is_active = (
+                        validated_source.is_active
+                        if validated_source.is_active is not None
+                        else True
+                    )
                     result["updated"] += 1
                     logger.info(
                         "Updated source",

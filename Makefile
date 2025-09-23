@@ -70,7 +70,7 @@ db-history:
 	@cd backend && alembic history --verbose
 
 # RSS Ingestion operations
-.PHONY: seed-sources ingest-one
+.PHONY: seed-sources ingest-one ingest-one-normalized
 
 seed-sources:
 	@echo "Seeding sources from JSON..."
@@ -80,6 +80,11 @@ ingest-one:
 	@echo "Ingesting single feed..."
 	@if [ -z "$(FEED_URL)" ]; then echo "Provide FEED_URL=..."; exit 1; fi
 	@cd backend && conda run -n ymb-py311 python -m app.ingestion.ingest_one --feed-url "$(FEED_URL)"
+
+ingest-one-normalized:
+	@echo "Ingesting with normalization..."
+	@if [ -z "$(FEED_URL)" ]; then echo "Provide FEED_URL=..."; exit 1; fi
+	@cd backend && conda run -n ymb-py311 python -m app.ingestion.ingest_one --feed-url "$(FEED_URL)" --normalize
 
 # Milestone completion process enforcement
 milestone-checklist:

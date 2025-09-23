@@ -11,7 +11,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Use RSS feeds + AI for content filtering and summarization
 - Learn from user feedback to improve relevance
 
-**Current Status:** Milestone 1.4 (RSS Source Seeding and Single-Feed Ingestion) - Complete RSS ingestion pipeline with comprehensive security architecture is implemented. Includes feed client with SSRF protection, XSS sanitization, content mapper, CLI tools, and full test suite. Next milestones will add normalization/deduplication (M1.5), expand to 10+ feeds (M1.6), and add AI processing capabilities (M1.7-M1.8).
+**Current Status:** Milestone 1.5 (Normalization, Storage, and Deduplication) - Complete RSS ingestion pipeline with comprehensive normalization and deduplication capabilities. Includes content normalization, stable content hashing, idempotent storage, character encoding security, and comprehensive test coverage. Next milestones will expand to 10+ feeds (M1.6) and add AI processing capabilities (M1.7-M1.8).
 
 **Key Documents:**
 
@@ -417,12 +417,14 @@ Use `make milestone-checklist` to see the full checklist. Always create a TodoWr
 
 ### Documentation Updates (MANDATORY)
 
-- [ ] Update `MVP_imp_plan.md`:
+**⚠️ CRITICAL: Both MVP_imp_plan.md AND CLAUDE.md must be updated - do not skip either file!**
+
+- [ ] Update `MVP_imp_plan.md` (REQUIRED):
   - [ ] Add ✅ checkmark to milestone title
   - [ ] Add "Status: **COMPLETED**" to milestone description
   - [ ] Add reference to detailed spec file (e.g., "Note: Detailed spec can be found in [M1.X_spec.md](M1.X_spec.md)")
+  - [ ] Update milestone checklist at bottom of `MVP_imp_plan.md` from `[ ]` to `[x]`
 - [ ] Update `CLAUDE.md` "Current Status" section to reflect latest completion
-- [ ] Update milestone checklist at bottom of `MVP_imp_plan.md` from `[ ]` to `[x]`
 
 ### Commit and Push
 
@@ -436,7 +438,7 @@ Use `make milestone-checklist` to see the full checklist. Always create a TodoWr
 - [ ] Documentation accurately reflects milestone completion
 - [ ] Ready for next milestone or PR creation
 
-**Personal Workflow Rule:** Never mark milestone TodoWrite items as "completed" without first completing ALL documentation updates above.
+**Personal Workflow Rule:** Never mark milestone TodoWrite items as "completed" without first completing ALL documentation updates above. BOTH MVP_imp_plan.md AND CLAUDE.md must be updated - no exceptions!
 
 ### Example Milestone Format
 

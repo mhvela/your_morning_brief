@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<rss version="2.0">
+  <channel>
+    <title>ISO-8859-1 Test Feed</title>
+    <item>
+      <title>Café News Article</title>
+      <link>https://example.com/iso-test</link>
+      <description>Article with ISO-8859-1 characters: café, naïve</description>
+      <pubDate>Mon, 15 Jan 2023 10:00:00 GMT</pubDate>
+    </item>
+  </channel>
+</rss>

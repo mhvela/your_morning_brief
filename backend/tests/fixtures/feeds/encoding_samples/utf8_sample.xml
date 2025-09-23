@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>UTF-8 Test Feed with Unicode Characters</title>
+    <item>
+      <title>Café News: Naïve AI Research Résumé</title>
+      <link>https://example.com/unicode-test</link>
+      <description>Article with Unicode: café, naïve, résumé, emoji 🤖</description>
+      <pubDate>Mon, 15 Jan 2023 10:00:00 GMT</pubDate>
+    </item>
+  </channel>
+</rss>

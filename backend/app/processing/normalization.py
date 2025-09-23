@@ -25,7 +25,7 @@ def normalize_title(title: str | None) -> str:
     Returns:
         Normalized title for display
     """
-    if not title:
+    if not title or not isinstance(title, str):
         return "Untitled Article"
 
     # Apply Unicode normalization first
@@ -49,7 +49,7 @@ def normalize_title(title: str | None) -> str:
     sql_patterns = [
         r"DELETE\s+FROM",
         r"INSERT\s+INTO",
-        r"UPDATE\s+SET",
+        r"UPDATE\s+.*\s+SET",  # More flexible pattern for UPDATE statements
         r"DROP\s+TABLE",
         r";\s*--",
         r"--\s*$",
@@ -174,7 +174,7 @@ def normalize_summary(summary: str | None) -> str | None:
     sql_patterns = [
         r"DELETE\s+FROM",
         r"INSERT\s+INTO",
-        r"UPDATE\s+SET",
+        r"UPDATE\s+.*\s+SET",  # More flexible pattern for UPDATE statements
         r"DROP\s+TABLE",
         r";\s*--",
     ]
@@ -214,7 +214,7 @@ def normalize_author(author: str | None) -> str | None:
     Returns:
         Normalized author or None
     """
-    if not author or not author.strip():
+    if not author or not isinstance(author, str) or not author.strip():
         return None
 
     # Apply Unicode normalization

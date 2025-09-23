@@ -26,3 +26,9 @@ repos:
         entry: bash -lc 'cd frontend && npm run lint'
         files: ^frontend/
         pass_filenames: false
+      - id: check-dependency-sync
+        name: check dependency sync
+        language: python
+        entry: python scripts/check_dependency_sync.py
+        files: ^backend/(requirements\.txt|pyproject\.toml)$
+        pass_filenames: false

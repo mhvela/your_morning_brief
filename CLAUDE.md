@@ -33,11 +33,14 @@ make lint
 # Run all tests
 make test
 
+# Check dependency sync (prevents CI failures)
+make check-deps
+
 # Backend-specific commands (use Conda environment ymb-py311)
 conda run -n ymb-py311 pytest                        # Run all tests
 conda run -n ymb-py311 pytest tests/test_health.py   # Specific test file
 conda run -n ymb-py311 pytest -k "test_healthcheck"  # Test pattern matching
-conda run -n ymb-py311 mypy app/                      # Type checking
+conda run -n ymb-py311 mypy app/                      # Type checking (app only)
 
 # Frontend-specific commands
 cd frontend && npm test                      # Vitest tests
@@ -73,6 +76,67 @@ cd frontend && npx tsc --noEmit             # Type checking
 - Pre-commit hooks enforce code quality (ruff, black, eslint, prettier)
 - CI pipeline runs on GitHub Actions with lint, type-check, and test jobs
 - All quality gates must pass before merge
+
+## Dependency Management
+
+**⚠️ CRITICAL: Prevent CI Failures with Dependency Sync**
+
+This project uses **two dependency files** that must be kept in sync:
+
+1. `backend/requirements.txt` - Used for local development (Conda environment)
+2. `backend/pyproject.toml` - Used by GitHub Actions CI/CD
+
+**When adding new Python dependencies:**
+
+### Method 1: Add to Both Files (Recommended)
+
+```bash
+# 1. Add to requirements.txt
+echo "new-package==1.2.3" >> backend/requirements.txt
+
+# 2. Add to pyproject.toml dependencies section
+# Edit backend/pyproject.toml and add:
+#   "new-package==1.2.3",
+
+# 3. Verify sync
+make check-deps
+
+# 4. Install locally
+conda run -n ymb-py311 pip install new-package==1.2.3
+```
+
+### Method 2: Use Validation to Catch Issues
+
+```bash
+# Add to either file, then check what's missing
+make check-deps
+
+# The command will tell you exactly which packages to add where
+# Example output:
+# ❌ Dependencies in requirements.txt but missing from pyproject.toml:
+#    - new-package
+```
+
+### Automatic Prevention
+
+- **Pre-commit hooks** automatically run `make check-deps` before commits
+- **Commits are blocked** if dependencies are out of sync
+- **Clear error messages** show exactly what to fix
+
+### Why This Matters
+
+```bash
+# ❌ Without sync: GitHub CI fails with
+# ImportError: No module named 'new-package'
+
+# ✅ With sync: Both environments have identical dependencies
+```
+
+**Commands:**
+
+- `make check-deps` - Validate dependency sync
+- Pre-commit hooks run this automatically
+- Never commit with mismatched dependencies
 
 ## Product Context
 

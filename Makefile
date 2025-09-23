@@ -1,4 +1,4 @@
-.PHONY: setup fmt lint test up down backend frontend milestone-checklist
+.PHONY: setup fmt lint test up down backend frontend milestone-checklist check-deps
 
 PYTHON := python3.11
 PIP := pip
@@ -104,3 +104,8 @@ milestone-checklist:
 	@echo "📋 TodoWrite Rule: Include ALL above items in milestone todos"
 	@echo ""
 	@echo "See CLAUDE.md 'MANDATORY Milestone Completion Checklist' for details"
+
+# Dependency management
+check-deps:
+	@echo "🔍 Checking dependency sync between requirements.txt and pyproject.toml..."
+	@python3 scripts/check_dependency_sync.py

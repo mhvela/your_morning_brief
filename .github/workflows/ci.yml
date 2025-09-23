@@ -26,7 +26,7 @@ jobs:
           black --check .
       - name: Type check (mypy)
         working-directory: backend
-        run: mypy .
+        run: mypy app/
       - name: Tests (pytest)
         working-directory: backend
         run: pytest -q

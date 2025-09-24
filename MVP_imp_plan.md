@@ -67,7 +67,7 @@ Note: Detailed spec can be found in [M1.3_spec.md](M1.3_spec.md).
 
 Note: Detailed spec can be found in [M1.4_spec.md](M1.4_spec.md).
 
-### Milestone 1.5 – Normalization, Storage, and Deduplication
+### Milestone 1.5 – Normalization, Storage, and Deduplication ✅
 
 - Goal: Store clean article records.
 - Deliverables:
@@ -75,6 +75,9 @@ Note: Detailed spec can be found in [M1.4_spec.md](M1.4_spec.md).
   - Deduplication via stable content hash + DB unique index
 - Acceptance:
   - Re-ingestion of same feed yields 0 duplicates; idempotent.
+- Status: **COMPLETED**
+
+Note: Detailed spec can be found in [M1.5_spec.md](M1.5_spec.md).
 
 ### Milestone 1.6 – Expand to 10+ Feeds and Basic Error Handling
 
@@ -263,7 +266,7 @@ Note: Detailed spec can be found in [M1.4_spec.md](M1.4_spec.md).
 - [x] 1.2 FastAPI skeleton (See [M1.2_spec.md](M1.2_spec.md))
 - [x] 1.3 DB bootstrap (See [M1.3_spec.md](M1.3_spec.md))
 - [x] 1.4 Single-feed ingestion (See [M1.4_spec.md](M1.4_spec.md))
-- [ ] 1.5 Normalization & dedup
+- [x] 1.5 Normalization & dedup
 - [ ] 1.6 10+ feeds & robustness
 - [ ] 1.7 Baseline relevance
 - [ ] 1.8 Summarization

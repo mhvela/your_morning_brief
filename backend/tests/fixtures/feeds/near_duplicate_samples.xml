@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Test Feed for Deduplication</title>
+    <link>https://example.com/feed</link>
+    <description>Test feed with near-duplicate entries</description>
+
+    <!-- Original article -->
+    <item>
+      <title>New AI Language Processing Breakthrough</title>
+      <link>https://techcrunch.com/2023/01/15/ai-language-breakthrough/?utm_source=feed&amp;utm_medium=rss</link>
+      <description><![CDATA[<p>Researchers have made significant advances in natural language processing using new neural architectures.</p>]]></description>
+      <pubDate>Mon, 15 Jan 2023 10:00:00 GMT</pubDate>
+      <author>John Smith</author>
+      <category>AI</category>
+      <category>Technology</category>
+    </item>
+
+    <!-- Near-duplicate: extra whitespace, tracking params, HTML differences -->
+    <item>
+      <title>  New AI Language Processing Breakthrough  </title>
+      <link>https://techcrunch.com/2023/01/15/ai-language-breakthrough/?fbclid=12345&amp;gclid=67890</link>
+      <description><![CDATA[<div><p>Researchers have made significant advances in natural language processing using new neural architectures.</p></div>]]></description>
+      <pubDate>Mon, 15 Jan 2023 10:00:00 GMT</pubDate>
+      <author>  John Smith  </author>
+      <category>Technology</category>
+      <category>AI</category>
+    </item>
+
+    <!-- Near-duplicate: case differences, minor HTML changes -->
+    <item>
+      <title>new ai language processing breakthrough</title>
+      <link>https://techcrunch.com/2023/01/15/ai-language-breakthrough/</link>
+      <description><![CDATA[<strong>Researchers</strong> have made <em>significant</em> advances in natural language processing using new neural architectures.]]></description>
+      <pubDate>Mon, 15 Jan 2023 10:00:00 +0000</pubDate>
+      <author>John Smith</author>
+      <category>ai</category>
+      <category>technology</category>
+    </item>
+
+    <!-- Unique article for comparison -->
+    <item>
+      <title>Quantum Computing Milestone Reached</title>
+      <link>https://techcrunch.com/2023/01/16/quantum-computing-milestone</link>
+      <description><![CDATA[<p>Scientists achieve new quantum computing breakthrough with 1000-qubit processor.</p>]]></description>
+      <pubDate>Tue, 16 Jan 2023 14:30:00 GMT</pubDate>
+      <author>Jane Doe</author>
+      <category>Quantum</category>
+      <category>Technology</category>
+    </item>
+
+    <!-- Test XSS and injection attempts -->
+    <item>
+      <title>Security Test Article &lt;script&gt;alert('xss')&lt;/script&gt;</title>
+      <link>https://example.com/security-test</link>
+      <description><![CDATA[<script>alert('xss')</script><p>This article tests XSS filtering with content: DELETE FROM articles; --</p>]]></description>
+      <pubDate>Wed, 17 Jan 2023 09:15:00 GMT</pubDate>
+      <author>&lt;img src=x onerror=alert(1)&gt;</author>
+      <category>Security</category>
+    </item>
+
+  </channel>
+</rss>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="windows-1252"?>
+<rss version="2.0">
+  <channel>
+    <title>Windows-1252 Test Feed</title>
+    <item>
+      <title>Test Article with Windows-1252 encoding</title>
+      <link>https://example.com/windows-test</link>
+      <description>Article with special quotes: "smart quotes" and em-dash—test</description>
+      <pubDate>Mon, 15 Jan 2023 10:00:00 GMT</pubDate>
+    </item>
+  </channel>
+</rss>

@@ -153,15 +153,45 @@ class TestSQLInjectionPrevention:
 
     def test_article_insertion_with_malicious_content(self):
         """Test that article insertion handles SQL injection attempts."""
+        # Mock feed entry with SQL injection attempt
+        # configure spec to avoid attribute issues
+        from unittest.mock import MagicMock
+
         from app.ingestion.mapper import ArticleMapper
 
-        # Mock feed entry with SQL injection attempt
-        malicious_entry = Mock()
+        # Create a more realistic mock that handles attribute access properly
+        malicious_entry = MagicMock()
         malicious_entry.title = "'; DELETE FROM articles; --"
         malicious_entry.link = "http://malicious.com/article"
         malicious_entry.summary = "'; UPDATE articles SET title='hacked'; --"
         malicious_entry.published = "Mon, 23 Sep 2024 09:00:00 GMT"
         malicious_entry.tags = []
+
+        # Configure to return None for missing attributes instead of Mock objects
+        def mock_getattr(name, default=None):
+            attrs = {
+                "title": "'; DELETE FROM articles; --",
+                "link": "http://malicious.com/article",
+                "summary": "'; UPDATE articles SET title='hacked'; --",
+                "published": "Mon, 23 Sep 2024 09:00:00 GMT",
+                "tags": [],
+            }
+            return attrs.get(name, default)
+
+        # Replace the entry with a custom mock that handles getattr properly
+        class MockEntry:
+            def __init__(self):
+                self.title = "'; DELETE FROM articles; --"
+                self.link = "http://malicious.com/article"
+                self.summary = "'; UPDATE articles SET title='hacked'; --"
+                self.published = "Mon, 23 Sep 2024 09:00:00 GMT"
+                self.tags = []
+
+            def __getattr__(self, name):
+                # Return None for any attribute not explicitly set
+                return None
+
+        malicious_entry = MockEntry()
 
         mapper = ArticleMapper()
         article_data = mapper.map_entry_to_article(malicious_entry, source_id=1)

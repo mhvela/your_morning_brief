@@ -11,6 +11,8 @@ from dateutil import parser as date_parser
 
 from app.core.config import settings
 from app.core.logging import get_logger
+from app.processing.content_hash import compute_content_hash_from_normalized
+from app.processing.normalization import normalize_entry
 
 logger = get_logger(__name__)
 
@@ -299,7 +301,7 @@ class ArticleMapper:
 
     def map_entry_to_article(self, entry: Any, source_id: int) -> dict[str, Any]:
         """
-        Map feedparser entry to Article model fields.
+        Map feedparser entry to Article model fields with normalization.
 
         Args:
             entry: feedparser entry object
@@ -308,43 +310,84 @@ class ArticleMapper:
         Returns:
             Dictionary with Article model fields
         """
-        # Extract basic fields
-        title = self._extract_title(entry)
-        link = self._extract_link(entry)
-        summary_raw = self._extract_summary(entry)
-        author = self._extract_author(entry)
-        tags = self._extract_tags(entry)
+        # Check if normalization is enabled
+        if settings.normalize_enabled:
+            # Use new normalization pipeline
+            normalized = normalize_entry(entry)
 
-        # Parse published date
-        published_str = getattr(entry, "published", None) or getattr(
-            entry, "updated", None
-        )
-        published_at = parse_published_date(published_str)
+            # Generate content hash from normalized data
+            content_hash = compute_content_hash_from_normalized(normalized)
 
-        # Generate content hash
-        timestamp_for_hash = published_at.isoformat() if published_str else "fallback"
-        content_hash = generate_content_hash(title, link, timestamp_for_hash)
+            # Create article data with normalized fields
+            article_data = {
+                "source_id": source_id,
+                "title": normalized["title"],
+                "link": normalized["link"],
+                "summary_raw": normalized["summary"],
+                "content_hash": content_hash,
+                "published_at": normalized["published_at"],
+                "author": normalized["author"],
+                "tags": normalized["tags"],
+            }
 
-        article_data = {
-            "source_id": source_id,
-            "title": title,
-            "link": canonicalize_url(link),
-            "summary_raw": summary_raw,
-            "content_hash": content_hash,
-            "published_at": published_at,
-            "author": author,
-            "tags": tags,
-        }
+            logger.debug(
+                "Mapped article with normalization",
+                extra={
+                    "title": (
+                        normalized["title"][:50] + "..."
+                        if len(normalized["title"]) > 50
+                        else normalized["title"]
+                    ),
+                    "link": normalized["link"],
+                    "published_at": normalized["published_at"].isoformat(),
+                    "content_hash": content_hash[:16] + "...",
+                    "normalization_enabled": True,
+                },
+            )
+        else:
+            # Fallback to legacy mapping for backward compatibility
+            title = self._extract_title(entry)
+            link = self._extract_link(entry)
+            summary_raw = self._extract_summary(entry)
+            author = self._extract_author(entry)
+            tags = self._extract_tags(entry)
 
-        logger.debug(
-            "Mapped article",
-            extra={
-                "title": title[:50] + "..." if len(title) > 50 else title,
-                "link": article_data["link"],
-                "published_at": published_at.isoformat(),
-                "content_hash": content_hash[:16] + "...",
-            },
-        )
+            # Parse published date
+            published_str = getattr(entry, "published", None) or getattr(
+                entry, "updated", None
+            )
+            published_at = parse_published_date(published_str)
+
+            # Generate content hash (legacy method)
+            timestamp_for_hash = (
+                published_at.isoformat() if published_str else "fallback"
+            )
+            content_hash = generate_content_hash(title, link, timestamp_for_hash)
+
+            article_data = {
+                "source_id": source_id,
+                "title": title,
+                "link": canonicalize_url(link),
+                "summary_raw": summary_raw,
+                "content_hash": content_hash,
+                "published_at": published_at,
+                "author": author,
+                "tags": tags,
+            }
+
+            logger.debug(
+                "Mapped article without normalization",
+                extra={
+                    "title": title[:50] + "..." if len(title) > 50 else title,
+                    "link": article_data["link"],
+                    "published_at": published_at.isoformat(),
+                    "content_hash": content_hash[:16] + "...",
+                    "normalization_enabled": False,
+                },
+            )
+
+        # Validate all required fields
+        validate_article_data(article_data)
 
         return article_data
 

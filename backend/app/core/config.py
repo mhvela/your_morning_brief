@@ -63,6 +63,30 @@ class Settings(BaseSettings):
     ]
     allowed_url_schemes: list[str] = ["http", "https"]
 
+    # Normalization and deduplication settings (M1.5)
+    normalize_enabled: bool = True
+    hash_summary_prefix_len: int = 100
+    link_tracking_params: list[str] = [
+        "utm_source",
+        "utm_medium",
+        "utm_campaign",
+        "utm_term",
+        "utm_content",
+        "fbclid",
+        "gclid",
+        "mc_cid",
+        "mc_eid",
+    ]
+    allowed_encodings: list[str] = [
+        "utf-8",
+        "utf-16",
+        "iso-8859-1",
+        "windows-1252",
+        "ascii",
+    ]
+    encoding_confidence_min: float = 0.8
+    encoding_sample_size: int = 10240
+
     # Build info (populated at runtime)
     build_date: str = ""
     commit_hash: str = ""

@@ -41,6 +41,8 @@ def _process_feed_entry(
     entry: Any, source_id: int, mapper: ArticleMapper, db: Session
 ) -> str:
     """Process a single feed entry and return result status."""
+    from sqlalchemy.exc import IntegrityError
+
     # Map entry to article data
     article_data = mapper.map_entry_to_article(entry, source_id)
 
@@ -54,27 +56,54 @@ def _process_feed_entry(
 
     if existing_article:
         logger.debug(
-            "Skipping duplicate article",
-            extra={"content_hash": article_data["content_hash"][:16] + "..."},
+            "Skipping duplicate article (found in DB)",
+            extra={
+                "content_hash": article_data["content_hash"][:16] + "...",
+                "title": (
+                    article_data["title"][:50] + "..."
+                    if len(article_data["title"]) > 50
+                    else article_data["title"]
+                ),
+            },
         )
         return "skipped"
 
-    # Create new article
-    article = Article(**article_data)
-    db.add(article)
+    # Create new article with proper unique constraint handling
+    try:
+        article = Article(**article_data)
+        db.add(article)
+        db.flush()  # Force immediate constraint check
 
-    logger.debug(
-        "Inserted article",
-        extra={
-            "title": (
-                article_data["title"][:50] + "..."
-                if len(article_data["title"]) > 50
-                else article_data["title"]
-            ),
-            "content_hash": article_data["content_hash"][:16] + "...",
-        },
-    )
-    return "inserted"
+        logger.debug(
+            "Inserted article",
+            extra={
+                "title": (
+                    article_data["title"][:50] + "..."
+                    if len(article_data["title"]) > 50
+                    else article_data["title"]
+                ),
+                "content_hash": article_data["content_hash"][:16] + "...",
+            },
+        )
+        return "inserted"
+
+    except IntegrityError as e:
+        # Handle unique constraint violation (race condition or concurrent inserts)
+        db.rollback()
+
+        logger.debug(
+            "Skipping duplicate article (unique constraint violation)",
+            extra={
+                "content_hash": article_data["content_hash"][:16] + "...",
+                "title": (
+                    article_data["title"][:50] + "..."
+                    if len(article_data["title"]) > 50
+                    else article_data["title"]
+                ),
+                "error": str(e)[:200],
+            },
+        )
+        return "skipped"
 
 
 def _update_source_after_ingestion(
@@ -411,6 +440,17 @@ Examples:
         "--verbose", "-v", action="store_true", help="Enable verbose output"
     )
 
+    # Normalization control flags
+    normalize_group = parser.add_mutually_exclusive_group()
+    normalize_group.add_argument(
+        "--normalize",
+        action="store_true",
+        help="Enable content normalization (default behavior)",
+    )
+    normalize_group.add_argument(
+        "--no-normalize", action="store_true", help="Disable content normalization"
+    )
+
     return parser
 
 
@@ -482,6 +522,18 @@ def main() -> int:
 
         logging.getLogger("app").setLevel(logging.DEBUG)
 
+    # Handle normalization flag override
+    from app.core.config import settings
+
+    original_normalize_enabled = settings.normalize_enabled
+
+    if args.no_normalize:
+        settings.normalize_enabled = False
+        logger.info("Content normalization disabled via CLI flag")
+    elif args.normalize:
+        settings.normalize_enabled = True
+        logger.info("Content normalization enabled via CLI flag")
+
     try:
         if args.seed_sources:
             return _handle_seed_sources(args)
@@ -501,6 +553,10 @@ def main() -> int:
     except Exception as e:
         logger.error(f"Operation failed: {e}")
         return 1
+
+    finally:
+        # Restore original normalization setting
+        settings.normalize_enabled = original_normalize_enabled
 
 
 if __name__ == "__main__":

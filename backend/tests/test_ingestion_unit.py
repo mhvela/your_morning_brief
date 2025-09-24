@@ -243,7 +243,8 @@ class TestMapper:
         assert article_data["summary_raw"] == "This is a test article description."
         assert article_data["source_id"] == 1
         assert article_data["author"] == "Test Author"
-        assert article_data["tags"] == ["tech", "news"]
+        # Sort tags for consistent comparison since order may vary
+        assert sorted(article_data["tags"]) == ["news", "tech"]
         assert "content_hash" in article_data
         assert "published_at" in article_data
 

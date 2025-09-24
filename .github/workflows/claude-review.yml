@@ -27,6 +27,7 @@ jobs:
         uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           # Review prompt that will be sent to Claude
           prompt: |
             Please review this PR following the project standards in CLAUDE.md.
@@ -60,5 +61,6 @@ jobs:
         uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           # Use the comment as the prompt
           prompt: ${{ github.event.comment.body }}

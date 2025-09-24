@@ -25,9 +25,8 @@ jobs:
 
       - name: Claude Code Review
         uses: anthropics/claude-code-action@v1
-        env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           # Review prompt that will be sent to Claude
           prompt: |
             Please review this PR following the project standards in CLAUDE.md.
@@ -59,8 +58,7 @@ jobs:
 
       - name: Respond to mention
         uses: anthropics/claude-code-action@v1
-        env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           # Use the comment as the prompt
           prompt: ${{ github.event.comment.body }}

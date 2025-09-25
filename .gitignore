@@ -90,6 +90,9 @@ docker-compose.override.yml
 *.sqlite
 *.sqlite3
 
+# Pytest database test files
+.pytest_db_test*
+
 # --- Misc ---
 *.log
 *.tmp
